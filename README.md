@@ -154,7 +154,7 @@ node .review/probe-bands.mjs   http://127.0.0.1:4173/ 1440 900   # 逐帧打出 
    - Scene 04 的 `.views-stage` 高度（`200svh`）↔ `ViewsScene.tsx` 的 `startAt/endAt`；
    - Scene 07 的 `.scene-sync` 尾部空间 ↔ 它的 `leadIn`。
    两处都有交叉注释。
-5. **项目当前没有 Git 仓库**（无 `.git`）。初始化与否待所有者拍板，见 [`HANDOFF.md`](./HANDOFF.md) §9。
+5. **远端仓库尚未配置** —— 本地已有首次提交（分支 `main`），但没有 remote，还未推送。见 [`HANDOFF.md`](./HANDOFF.md) §7。
 
 ---
 

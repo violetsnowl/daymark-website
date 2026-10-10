@@ -3,7 +3,7 @@
 > 面向上一位之后的**接手者**（人或其他 agent / 模型）。
 > 这份文档负责"现在在哪、怎么接着干、别踩什么"。**实现细节与逐轮修复记录在 [`REVIEW.md`](./REVIEW.md)**，两者不重复：这里给判断，那里给证据。
 >
-> 最后更新：本窗口收尾时。**没有 Git 仓库**（`git status` 不适用）——见 §7。
+> 最后更新：本窗口收尾时。仓库已初始化（分支 `main`，首次提交 `47fbe93`），**无远端、未推送** —— 见 §7。
 
 ---
 
@@ -153,7 +153,7 @@
 
 ### 6.1 环境事实
 
-- **没有 Git 仓库**：项目根目录没有 `.git`。用户从未要求初始化，本窗口也**没有**擅自 `git init`（见 §7）。
+- **Git 仓库已初始化**：分支 `main`，首次提交 `47fbe93`，**无远端、未推送**。详见 §7。
 - Node v24.19.0 / npm 11.17.0，在 `C:\Program Files\nodejs`。
 - `package.json` 里有 `allowScripts: {"esbuild@0.25.12": true}`；`.npmrc` 里有 `audit=false`、`fund=false`、`legacy-peer-deps=true`。
 - `vite.config.ts` 开了 `server.watch.usePolling: true, interval: 400` —— 某些编辑器保存时会短暂锁定临时文件，原生 watcher 会 `EBUSY` 崩溃。
@@ -194,11 +194,11 @@ node .review/probe-stage-d.mjs http://127.0.0.1:4173/   # Reminder / AI / Sync �
 
 ## 7. Git 现状与提交规则
 
-- **仓库不存在**。`git status` 无法运行，本轮**没有**任何提交。
-- 本窗口**没有**执行 `git init` —— 初始化仓库属于项目基础设施决定，应由此项目的所有者拍板（见 §9 待确认事项）。
-- 若接手者要初始化，`.gitignore` 已就绪：忽略 `node_modules`、`dist`、`.env*`、编辑器目录，以及 `.review/` 下生成的 `*.png` / `*.json` / `*.log` / `chrome-profile*`（**脚本保留、产物不提交**）。
-- 现有约定（来自 `DEPLOY.md` 的部署路径假设）：默认分支 `main`，仓库地址 `https://github.com/a161858970-ux/Daymark`。
-- **没有明确推送规则时不要擅自 push。**
+- **仓库已初始化**（此前不存在）。默认分支 `main`，已有一次提交：`47fbe93 Daymark / 拾序 官网：首页十节与完整 Footer 首次提交`，86 个文件 / 22614 行。
+- **没有任何 remote，从未 push**。远端约定见 `DEPLOY.md`：`https://github.com/a161858970-ux/Daymark`。**没有明确推送规则时不要擅自 push。**
+- 提交信息用中文，遵循 conventional 风格：首行 `type(scope): 摘要`，正文说明范围、关键机制与验证结果。
+- `.gitignore` 忽略 `node_modules`、`dist`、`.env*`、编辑器目录，以及 `.review/` 下的产物（`*.png` / `*.json` / `*.log` / `chrome-profile*`，**任意深度**）。**脚本保留、产物不提交** —— `.review/` 下的验证脚本是有价值的项目资产，改产品时应与代码一起提交。
+- `.gitattributes` 把仓库内换行符固定为 LF（`* text=auto eol=lf`）。工作区在 Windows 上本来就是全部 LF，但 Git 默认 `core.autocrlf=true` 会在检出时改写文件、给下一位接手者制造整文件级 diff，所以显式钉住。二进制资产标记为 `binary`，`package-lock.json` 标为生成物、不参与 diff。
 
 ---
 
@@ -226,7 +226,7 @@ node .review/probe-stage-d.mjs http://127.0.0.1:4173/   # Reminder / AI / Sync �
 
 | 事项 | 说明 |
 |---|---|
-| **是否初始化 Git 仓库** | 目前没有版本控制。文档与代码都在磁盘上，**没有历史**。这是当前最大的单点风险 |
+| **远端仓库与首次推送** | 本地已有 `47fbe93`，但**没有 remote**。推送目标与时机由你决定 |
 | 域名与部署 | `DEPLOY.md` 已写好，等你按顺序操作；期间 `api.daymark.top` 的解析记录必须先照抄到 Cloudflare 再改 NS，否则 API 会断 |
 | 品牌资产 | `public/favicon.svg` 是按品牌标记几何重绘的矢量版本；Logo 用的是产品 App 既有标记几何。若存在正式矢量资产，应替换 |
 | 英文文案 V2 | 当前是独立撰写的第一版，锁定前需要一轮语言润色 |
@@ -234,7 +234,7 @@ node .review/probe-stage-d.mjs http://127.0.0.1:4173/   # Reminder / AI / Sync �
 
 ### 9.2 已知风险
 
-1. **没有版本控制** —— 任何误操作不可回滚。建议尽快 `git init` + 首次提交。
+1. **只有一次提交、没有远端** —— 本地历史存在了，但硬盘故障仍会带走全部内容。建议尽快接上远端。
 2. **`<1024px` 的 tablet motion 尚未评审** —— 已知那里 sticky 关闭、Scene 04 退化为顺序排列，但 768–1024 区间的动效节奏没有专门看过。用户已明确排期到整页验收之后。
 3. **两处"成对参数"**：Scene 04 的 `.views-stage` 高度 ↔ `ViewsScene.tsx` 的窗口；Scene 07 的 `.scene-sync` 尾部空间 ↔ 其 `leadIn`。改一处必须改另一处，两边都有交叉注释，但**没有自动化检查**能抓住不一致。
 4. **`checks.mjs` 依赖页面总长度**：Scene 07/08 靠后的场景在测试视口下可能滚不到自己的终点。判断"是否完成"请用 `probe-page-end.mjs`（六视口），不要用 `checks.mjs` 里的固定偏移推断。
