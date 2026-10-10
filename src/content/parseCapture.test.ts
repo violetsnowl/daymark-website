@@ -9,12 +9,12 @@ import { parseCapture } from "./parseCapture.ts";
  */
 
 test("resolves the default Chinese demo sentence", () => {
-  const outcome = parseCapture("周五交保险经济学 PPT", "cn");
+  const outcome = parseCapture("周五交高等数学第二次作业", "cn");
   assert.equal(outcome.resolved, true);
-  assert.equal(outcome.item.course, "保险经济学");
+  assert.equal(outcome.item.course, "高等数学");
   assert.equal(outcome.item.time, "周五");
-  assert.equal(outcome.item.content, "PPT");
-  assert.equal(outcome.item.title, "周五交 PPT");
+  assert.equal(outcome.item.content, "第二次作业");
+  assert.equal(outcome.item.title, "周五交第二次作业");
 });
 
 test("resolves a secondary Chinese example", () => {
@@ -39,18 +39,21 @@ test("asks for confirmation when the sentence names no course", () => {
 });
 
 test("asks for confirmation when there is no usable meaning at all", () => {
-  const outcome = parseCapture("保险经济学", "cn");
+  const outcome = parseCapture("高等数学", "cn");
   assert.equal(outcome.resolved, false);
-  assert.equal(outcome.item.course, "保险经济学");
+  assert.equal(outcome.item.course, "高等数学");
 });
 
 test("resolves the English demo sentence", () => {
-  const outcome = parseCapture("Hand in the insurance economics PPT on Friday", "en");
+  const outcome = parseCapture(
+    "Hand in the second advanced mathematics assignment on Friday",
+    "en",
+  );
   assert.equal(outcome.resolved, true);
-  assert.equal(outcome.item.course, "insurance economics");
+  assert.equal(outcome.item.course, "advanced mathematics");
   assert.equal(outcome.item.time, "Friday");
-  assert.equal(outcome.item.content, "PPT");
-  assert.equal(outcome.item.title, "Hand in the PPT on Friday");
+  assert.equal(outcome.item.content, "assignment");
+  assert.equal(outcome.item.title, "Hand in the second assignment on Friday");
 });
 
 test("resolves an English sentence without a hand-in verb", () => {

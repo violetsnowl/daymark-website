@@ -207,6 +207,7 @@ try {
     { name: "01-hero", aim: { sel: ".hero", screenTop: 0 } },
     { name: "02-capture", aim: { sel: "#capture", screenTop: -120 }, settle: 3200 },
     { name: "03-context", aim: { sel: ".context-stage", screenTop: 0 }, settle: 900 },
+    { name: "01b-ideas", aim: { sel: ".small-things-field", screenTop: 60 }, settle: 900 },
     { name: "04-views-pinned", aim: { progress: 0.02 }, settle: 700 },
     { name: "04b-views-fade1", aim: { progress: 0.3333 }, settle: 700 },
     { name: "04c-views-fade2", aim: { progress: 0.6667 }, settle: 700 },

@@ -60,7 +60,7 @@ export const cn = {
   smallThings: {
     title: "真正容易忘记的，往往不是大事。",
     description:
-      "“周五交 PPT。”“明天记得带电脑。”“老师说看第五章。”这些事情都不大，却散落在课程、聊天、脑子和日历之间。",
+      "“周五交第二次作业。”“明天记得带电脑。”“老师说看第五章。”“下周再交。”这些事情都不大，却散落在课程、聊天、脑子和日历之间。",
     fragments: [
       { text: showcase.cn.fragments[0], weight: 2 },
       { text: showcase.cn.fragments[1], weight: 2 },
@@ -135,7 +135,7 @@ export const cn = {
       },
     },
     staticSummary:
-      "同一件事——保险经济学 · 周五交 PPT——在总览、课程、日历三个视角中的位置不同，但它始终是同一个事项。",
+      "同一件事——高等数学 · 周五交第二次作业——在总览、课程、日历三个视角中的位置不同，但它始终是同一个事项。",
     closing: "不是复制，是换个角度看。",
     windowLabel: (view) => `拾序产品界面示意：${view}视角下的同一个事项`,
   },
@@ -148,9 +148,9 @@ export const cn = {
     /* W4 §5.3 —— 时间不是倒计时。 */
     value: "周五 · 23:59",
     surface: {
-      course: "保险经济学",
+      course: "高等数学",
       when: "周五 · 23:59",
-      content: "PPT",
+      content: "第二次作业",
       note: "提醒已设置",
     },
     closing: "你可以把它暂时放下。",
@@ -167,9 +167,9 @@ export const cn = {
     input: "周五交作业",
     inputLabel: "演示输入",
     question: "这件事属于哪门课？",
-    answerConfirm: "保险经济学",
+    answerConfirm: "高等数学",
     answerKeep: "再看看",
-    resolved: "保险经济学",
+    resolved: "高等数学",
     resolvedLabel: "已确认课程",
     pendingNote: "课还没定，时间先按你写的「周五」留着。",
     settledNote: "课程定下来了。时间和内容都保持原样。",
@@ -189,8 +189,8 @@ export const cn = {
     title: "网络不在线，事情也不用等。",
     description: "离线时照常记录。联网后，再安静地同步。",
     devices: { laptop: "笔记本", phone: "手机" },
-    laptop: { sectionLabel: "刚刚记录", meta: "保险经济学 · 截止 周五 · 23:59" },
-    phone: { emptyLabel: "还没有同步到这里", meta: "保险经济学 · 截止 周五 · 23:59" },
+    laptop: { sectionLabel: "刚刚记录", meta: "高等数学 · 截止 周五 · 23:59" },
+    phone: { emptyLabel: "还没有同步到这里", meta: "高等数学 · 截止 周五 · 23:59" },
     /* W4 §7.3 —— 状态用语，不是网络术语。 */
     states: { offline: "离线记录中", syncing: "同步中", synced: "已同步" },
     closing: "同步完成以后，连接本身就不重要了。",
@@ -205,10 +205,10 @@ export const cn = {
     /* 一天的时间轴，不是仪表盘（W4 §8.3）。没有完成率、连续天数、效率百分比 ——
        W4 §8.6 明确禁止，而且这一段要说的本来就是"少占一点脑子"。 */
     entries: [
-      { time: "08:15", what: "想到一件事", note: "周五交保险经济学 PPT" },
+      { time: "08:15", what: "想到一件事", note: "周五交高等数学第二次作业" },
       { time: "11:40", what: "课程里出现一个新要求", note: "老师说看第五章" },
       { time: "14:20", what: "收到一次提醒", note: "周五 · 23:59" },
-      { time: "18:05", what: "打开课程页核对", note: "保险经济学" },
+      { time: "18:05", what: "打开课程页核对", note: "高等数学" },
     ],
     closing: "今天的事情，各归其位。",
   },

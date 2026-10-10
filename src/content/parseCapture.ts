@@ -30,17 +30,17 @@ export interface ParseOutcome {
   item: ParsedCapture;
 }
 
-const CN_COURSES = ["保险经济学", "数理统计", "AI 职业与保险"] as const;
+const CN_COURSES = ["高等数学", "数理统计", "AI 职业与保险"] as const;
 
 const EN_COURSES = [
-  "insurance economics",
+  "advanced mathematics",
   "mathematical statistics",
   "ai, careers and insurance",
 ] as const;
 
 const CN_DAYS = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"] as const;
 const CN_RELATIVE = ["今天", "明天", "后天", "下周", "本周", "这周"] as const;
-const CN_DELIVERABLES = ["PPT", "作业", "论文", "报告", "实验", "预习", "复习", "展示"] as const;
+const CN_DELIVERABLES = ["PPT", "第二次作业", "作业", "论文", "报告", "实验", "预习", "复习", "展示"] as const;
 
 const EN_DAYS = [
   "monday",
@@ -197,7 +197,7 @@ export function parseCapture(rawInput: string, locale: ParserLocale = "cn"): Par
   /**
    * The item title keeps the visitor's own phrasing whenever the sentence still
    * says something after the course is removed ("明天带电脑" stays
-   * "明天带电脑"). It is only rebuilt — "周五交 PPT" — when the remainder is
+   * "明天带电脑"). It is only rebuilt — "周五交作业" — when the remainder is
    * nothing but a time word, which would otherwise read as a fragment.
    *
    * The deliverable word (PPT, 作业) stays inside the title; the interface shows

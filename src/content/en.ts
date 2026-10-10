@@ -58,7 +58,7 @@ export const en = {
   smallThings: {
     title: "The things you forget are rarely the big ones.",
     description:
-      "“PPT due Friday.” “Bring my laptop tomorrow.” “The lecturer said chapter 5.” None of it is large — it just scatters across courses, chats, memory and calendars.",
+      "“Second assignment due Friday.” “Bring my laptop tomorrow.” “The lecturer said chapter 5.” “Hand it in next week.” None of it is large — it just scatters across courses, chats, memory and calendars.",
     fragments: [
       { text: showcase.en.fragments[0], weight: 2 },
       { text: showcase.en.fragments[1], weight: 2 },
@@ -135,7 +135,7 @@ export const en = {
       },
     },
     staticSummary:
-      "The same item — Insurance Economics · Hand in the PPT on Friday — occupies a different place in Overview, Courses and Calendar, but it is always the same item.",
+      "The same item — Advanced Mathematics · Hand in the second assignment on Friday — occupies a different place in Overview, Courses and Calendar, but it is always the same item.",
     closing: "Not copied. Looked at from another angle.",
     windowLabel: (view) => `Illustration of the Daymark interface: the same item in ${view}`,
   },
@@ -148,9 +148,9 @@ export const en = {
     label: "Reminder",
     value: "Friday · 23:59",
     surface: {
-      course: "Insurance Economics",
+      course: "Advanced Mathematics",
       when: "Friday · 23:59",
-      content: "PPT",
+      content: "the second assignment",
       note: "Reminder set",
     },
     closing: "So you can set it down for now.",
@@ -165,9 +165,9 @@ export const en = {
     input: "Hand in the assignment on Friday",
     inputLabel: "Demo input",
     question: "Which course is this for?",
-    answerConfirm: "Insurance Economics",
+    answerConfirm: "Advanced Mathematics",
     answerKeep: "Not yet",
-    resolved: "Insurance Economics",
+    resolved: "Advanced Mathematics",
     resolvedLabel: "Course confirmed",
     pendingNote: "No course yet. The time stays the Friday you wrote.",
     settledNote: "The course is settled. Time and item are left exactly as they were.",
@@ -189,11 +189,11 @@ export const en = {
     devices: { laptop: "Laptop", phone: "Phone" },
     laptop: {
       sectionLabel: "Just recorded",
-      meta: "Insurance Economics · due Friday · 23:59",
+      meta: "Advanced Mathematics · due Friday · 23:59",
     },
     phone: {
       emptyLabel: "Not synced here yet",
-      meta: "Insurance Economics · due Friday · 23:59",
+      meta: "Advanced Mathematics · due Friday · 23:59",
     },
     states: { offline: "Recording offline", syncing: "Syncing", synced: "Synced" },
     closing: "Once it has synced, the connection itself stops mattering.",
@@ -210,10 +210,10 @@ export const en = {
        that the day cost less attention, not that it scored well. Native English copy,
        not a translation of the Chinese. */
     entries: [
-      { time: "08:15", what: "Something comes to mind", note: "Hand in the PPT on Friday" },
+      { time: "08:15", what: "Something comes to mind", note: "Hand in the second assignment on Friday" },
       { time: "11:40", what: "A new requirement appears in class", note: "The lecturer said chapter 5" },
       { time: "14:20", what: "A reminder arrives", note: "Friday · 23:59" },
-      { time: "18:05", what: "Open the course page to check", note: "Insurance Economics" },
+      { time: "18:05", what: "Open the course page to check", note: "Advanced Mathematics" },
     ],
     closing: "The day's things are where they belong.",
   },

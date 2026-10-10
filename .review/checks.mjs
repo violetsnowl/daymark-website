@@ -158,14 +158,14 @@ try {
   check("capture reaches STRUCTURED", settled.phase === "STRUCTURED", settled.phase);
   check(
     "demo sentence stays in the field",
-    settled.inputValue === "周五交保险经济学 PPT",
+    settled.inputValue === "周五交高等数学第二次作业",
     settled.inputValue,
   );
   check("course / time / content are shown", settled.fieldRows === 3, `${settled.fieldRows} rows`);
-  check("item title settled", settled.itemTitle === "周五交 PPT", String(settled.itemTitle));
+  check("item title settled", settled.itemTitle === "周五交第二次作业", String(settled.itemTitle));
   check(
     "item meta carries the course and the deadline the whole site shares",
-    settled.itemMeta === "保险经济学 · 截止 周五 · 23:59",
+    settled.itemMeta === "高等数学 · 截止 周五 · 23:59",
     String(settled.itemMeta),
   );
   check("reset action is offered", settled.resetVisible);
@@ -451,7 +451,7 @@ try {
   );
   check(
     "context carries this item's real values",
-    contextStage.itemCourse === "保险经济学" && contextStage.itemTitle === "周五交 PPT",
+    contextStage.itemCourse === "高等数学" && contextStage.itemTitle === "周五交第二次作业",
     `${contextStage.itemCourse} / ${contextStage.itemTitle}`,
   );
   check(
@@ -623,7 +623,7 @@ try {
   const markedTitles = seenViews.map((view) => viewScan[view][0]?.title ?? null);
   check(
     "the same item is the marked one in every view",
-    markedTitles.length === 3 && markedTitles.every((title) => title === "周五交 PPT"),
+    markedTitles.length === 3 && markedTitles.every((title) => title === "周五交第二次作业"),
     markedTitles.join(" | "),
   );
   /* The item keeps one line across the projections: sub-pixel rounding in a
@@ -755,9 +755,9 @@ try {
   );
   check(
     "the reminder holds the same item, never a new object",
-    reminder.itemTitle === "周五交 PPT" &&
+    reminder.itemTitle === "周五交第二次作业" &&
       JSON.stringify(reminder.fields) ===
-        JSON.stringify(["保险经济学", "周五 · 23:59", "PPT"]),
+        JSON.stringify(["高等数学", "周五 · 23:59", "第二次作业"]),
     `${reminder.itemTitle} / ${reminder.fields.join(" | ")}`,
   );
   check(
@@ -845,13 +845,13 @@ try {
   check(
     "answering resolves the course — the thing the sentence left unstated",
     aiResolved.phase === "RESOLVED" &&
-      aiResolved.value === "保险经济学" &&
+      aiResolved.value === "高等数学" &&
       String(aiResolved.label).includes("课程"),
     `${aiResolved.phase} / ${aiResolved.label}: ${aiResolved.value}`,
   );
   check(
     "the resolved item keeps its own time and content, unchanged",
-    aiResolved.itemMeta === "保险经济学 · 周五 · 23:59" &&
+    aiResolved.itemMeta === "高等数学 · 周五 · 23:59" &&
       aiResolved.inventsDate === false,
     `title=${aiResolved.itemTitle} meta=${aiResolved.itemMeta}`,
   );
@@ -1011,8 +1011,8 @@ try {
   check(
     "two surfaces hold the same item by the end",
     sync.panes === 2 &&
-      sync.laptopItem === "周五交 PPT" &&
-      sync.phoneItem === "周五交 PPT",
+      sync.laptopItem === "周五交第二次作业" &&
+      sync.phoneItem === "周五交第二次作业",
     `${sync.panes} panes / ${sync.laptopItem} / ${sync.phoneItem}`,
   );
   const syncOrder = sync.samples.map((sample) => sample.state).join(",");
@@ -1486,7 +1486,7 @@ try {
       stored: localStorage.getItem('daymark-language'),
       canonical: document.querySelector('link[rel="canonical"]')?.href ?? null,
       hasChineseBody: /[\\u4e00-\\u9fff]/.test(
-        (document.querySelector('.scene-capture')?.textContent ?? '').replace(/拾序|保险经济学|数理统计|课程|日程|事项/g, ''),
+        (document.querySelector('.scene-capture')?.textContent ?? '').replace(/拾序|高等数学|数理统计|课程|日程|事项/g, ''),
       ),
     }))()`,
   );

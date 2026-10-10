@@ -5,7 +5,7 @@
  * production API, reads real user data, writes to a database, or runs a real
  * language model. Refresh always returns the same story.
  *
- * The same item — 保险经济学 · 周五交 PPT — is the narrative lead and is
+ * The same item — 高等数学 · 周五交第二次作业 — is the narrative lead and is
  * inherited by every later scene (W4 §2). English is an independent language
  * site (W2 §2.2), so it carries its own copy of the same story rather than a
  * bilingual overlay of the Chinese one.
@@ -102,26 +102,26 @@ export interface ShowcaseSet {
 export const showcase: Record<"cn" | "en", ShowcaseSet> = {
   cn: {
     mainItem: {
-      course: "保险经济学",
-      title: "周五交 PPT",
+      course: "高等数学",
+      title: "周五交第二次作业",
       time: "周五",
-      detail: "PPT",
+      detail: "第二次作业",
       /* Same day as `time`: one story, one weekday, no invented date. */
       due: "周五 · 23:59",
     },
     sourceCapture: {
-      raw: "周五交保险经济学 PPT",
-      fields: { course: "保险经济学", time: "周五", content: "PPT" },
-      title: "周五交 PPT",
+      raw: "周五交高等数学第二次作业",
+      fields: { course: "高等数学", time: "周五", content: "第二次作业" },
+      title: "周五交第二次作业",
     },
     heroItems: [
-      { course: "保险经济学", title: "周五交 PPT", time: "周五 · 23:59" },
+      { course: "高等数学", title: "周五交第二次作业", time: "周五 · 23:59" },
       { course: "数理统计", title: "明天带电脑", time: "明天 · 10:00" },
       { course: "AI 职业与保险", title: "阅读第 4 章", time: "下周" },
     ],
     secondaryItems: [
-      { course: "保险经济学", title: "阅读课程资料" },
-      { course: "保险经济学", title: "准备课堂展示" },
+      { course: "高等数学", title: "阅读课程资料" },
+      { course: "高等数学", title: "准备课堂展示" },
     ],
     calendar: {
       /* The hour columns the item could sit in, and the one its 23:59 lands on. */
@@ -134,26 +134,26 @@ export const showcase: Record<"cn" | "en", ShowcaseSet> = {
       ],
       caption: "周五",
     },
-    fragments: ["周五交 PPT", "明天带电脑", "老师说看第五章", "下周再交"],
+    fragments: ["周五交第二次作业", "明天记得带电脑", "老师说看第五章", "下周再交"],
     ghostFragment: "这件事属于哪门课？",
   },
   en: {
     mainItem: {
-      course: "Insurance Economics",
-      title: "Hand in the PPT on Friday",
+      course: "Advanced Mathematics",
+      title: "Hand in the second assignment on Friday",
       time: "Friday",
-      detail: "PPT",
+      detail: "the second assignment",
       due: "Friday · 23:59",
     },
     sourceCapture: {
-      raw: "Hand in the insurance economics PPT on Friday",
-      fields: { course: "insurance economics", time: "Friday", content: "PPT" },
-      title: "Hand in the PPT on Friday",
+      raw: "Hand in the second advanced mathematics assignment on Friday",
+      fields: { course: "advanced mathematics", time: "Friday", content: "assignment" },
+      title: "Hand in the second assignment on Friday",
     },
     heroItems: [
       {
-        course: "Insurance Economics",
-        title: "Hand in the PPT on Friday",
+        course: "Advanced Mathematics",
+        title: "Hand in the second assignment on Friday",
         time: "Friday · 23:59",
       },
       {
@@ -168,8 +168,8 @@ export const showcase: Record<"cn" | "en", ShowcaseSet> = {
       },
     ],
     secondaryItems: [
-      { course: "Insurance Economics", title: "Read the course material" },
-      { course: "Insurance Economics", title: "Prepare the class presentation" },
+      { course: "Advanced Mathematics", title: "Read the course material" },
+      { course: "Advanced Mathematics", title: "Prepare the class presentation" },
     ],
     calendar: {
       hours: ["09", "12", "15", "18", "21", "23"],
@@ -182,7 +182,7 @@ export const showcase: Record<"cn" | "en", ShowcaseSet> = {
       caption: "Friday",
     },
     fragments: [
-      "PPT due Friday",
+      "Second assignment due Friday",
       "Bring my laptop tomorrow",
       "The lecturer said chapter 5",
       "Hand it in next week",
@@ -202,7 +202,7 @@ export const showcaseStrings: Record<"cn" | "en", ShowcaseStrings> = {
     syncNote: "本机记录",
     moreCount: "其余事项不在展示范围内",
     duePrefix: "截止",
-    captureInput: "周五交保险经济学 PPT",
+    captureInput: "周五交高等数学第二次作业",
     captureExamples: ["明天数理统计记得带电脑", "AI 职业与保险下周看第四章"],
     capture: {
       recorded: "已记录",
@@ -216,7 +216,7 @@ export const showcaseStrings: Record<"cn" | "en", ShowcaseStrings> = {
       clarifyAction: "先记着，稍后再归位",
       clarifyKeep: "保持原样",
     },
-    courses: ["保险经济学", "数理统计", "AI 职业与保险"],
+    courses: ["高等数学", "数理统计", "AI 职业与保险"],
   },
   en: {
     brandCn: "拾序",
@@ -228,7 +228,7 @@ export const showcaseStrings: Record<"cn" | "en", ShowcaseStrings> = {
     syncNote: "Saved on this device",
     moreCount: "The rest of the list stays out of the showcase",
     duePrefix: "due",
-    captureInput: "Hand in the insurance economics PPT on Friday",
+    captureInput: "Hand in the second advanced mathematics assignment on Friday",
     captureExamples: [
       "Bring my laptop to statistics tomorrow",
       "Read chapter 4 for AI, careers and insurance next week",
@@ -245,7 +245,7 @@ export const showcaseStrings: Record<"cn" | "en", ShowcaseStrings> = {
       clarifyKeep: "Leave it as it is",
     },
     courses: [
-      "insurance economics",
+      "advanced mathematics",
       "mathematical statistics",
       "AI, careers and insurance",
     ],
