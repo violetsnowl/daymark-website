@@ -1418,9 +1418,10 @@
 }
 
 @media (min-width: 1024px) {
-  /* Pinned travel = stage height − sticky height − pin offset + 12svh of headroom.
-     At 1440×900: 1800 − 576 − (73 + 56) + 108 ≈ 1203px, which is the window
-     ViewsScene.tsx asks for with startAt 0.9 → endAt −1.41.
+  /* Pinned travel = stage height − sticky height − pin offset. At 1440×900:
+     1800 − 576 − (72 + 56) = 1096px of pinned scrolling. ViewsScene.tsx measures
+     its window against this stage (startAt 0.3 → endAt −1.22): it opens ~140px
+     above the pin and closes exactly at the release.
      The height was 300svh until review: with the last projection settled several
      hundred pixels before the panel released, the page held a static frame for
      ~1700px of scrolling, which reads as the section having ended while the
@@ -1526,6 +1527,18 @@
 .views-panels[data-active="calendar"] .views-panel[data-panel="calendar"] {
   opacity: 1;
   transform: none;
+}
+
+/* Scrub mode — pinned, motion allowed. The cross-fade is scroll-linked: each
+   projection's opacity is its own `--o`, bound to the bands in ViewsScene.tsx
+   (W4 §4.5 asks for scroll-linked values rather than several timed triggers),
+   and there is no transition to fight the scroll. Placed after the
+   [data-active] rules deliberately: same specificity, later wins while both
+   match. */
+.views-panels[data-scrub="true"] .views-panel[data-panel] {
+  opacity: var(--o, 0);
+  transform: translateY(calc(6px * (1 - var(--o, 0)))) scale(calc(0.994 + 0.006 * var(--o, 0)));
+  transition: none;
 }
 
 .views-caption {

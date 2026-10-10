@@ -1243,32 +1243,27 @@ try {
       const scene = document.querySelector('#day');
       const top = scene.getBoundingClientRect().top + window.scrollY;
       const samples = [];
-      /* Sampled across the scene's own window, as scroll positions rather than as
-         offsets from a fixed anchor.
-         This scene sits near the end of the document: the offsets that would reveal
-         its first entries lie past the point where the page stops scrolling, so
-         walking "from the top by offset" spends most of its steps clamped above the
-         scene — progress 0, every entry at its resting value — and then reports a
-         reveal that never moved. Walking the range that exists is the same idea as
-         the window itself.
-         The range also starts *where progress leaves 0*: below that every sample is
-         the same frame, and the first entry's fade-in rest value is not an arrival. */
+      /* Sampled in the scene's own progress space: for each target progress the
+         scroll position is solved against the *live* geometry of the scene at
+         that moment, so a mid-walk layout shift (the one-shot demos above
+         lengthen the page) cannot drift the sampling. The earlier fixed-offset
+         walk missed the last entry's arrival window on one run and the first
+         entry's on the next — both times because the samples' effective
+         progress spacing moved under it. The window definition here mirrors the
+         hook's untilPassed form (entry: top edge leadIn below the fold; exit:
+         bottom edge at the fold, capped by the last scrollable position). */
       const LEAD_IN = 260;
-      const docTop = scene.getBoundingClientRect().top + window.scrollY;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const height = scene.getBoundingClientRect().height;
-      const progressAt = (y) => {
+      const pick = (p) => {
+        const rect = scene.getBoundingClientRect();
+        const docTop = rect.top + window.scrollY;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
         const entry = docTop - window.innerHeight - LEAD_IN;
-        const exit = Math.min(docTop + height, maxScroll);
-        const span = exit - entry;
-        return span > 0 ? Math.min(1, Math.max(0, (y - entry) / span)) : 1;
+        const exit = Math.min(docTop + rect.height, maxScroll);
+        return Math.max(0, Math.min(maxScroll, entry + (exit - entry) * p));
       };
-      let from = Math.max(0, Math.min(docTop - 700, maxScroll));
-      while (progressAt(from) < 0.02 && from < maxScroll) from += 40;
-      const steps = 60;
-      for (let step = 0; step <= steps; step += 1) {
-        const target = from + ((maxScroll - from) * step) / steps;
-        window.scrollTo({ top: target, behavior: 'auto' });
+      for (let step = 0; step <= 49; step += 1) {
+        const target = pick(step / 50);
+        window.scrollTo({ top: target, behavior: 'instant' });
         await new Promise((resolve) => setTimeout(resolve, 130));
         const read = (node) => Number(node?.style.getPropertyValue('--in') || 0);
         samples.push({
@@ -1302,24 +1297,33 @@ try {
     `${day.times.join(" ")} · metrics=${day.metrics ? day.metrics.join(",") : "none"} · ` +
       `surfaceOrChart=${day.hasSurfaceOrChart}`,
   );
-  const dayFilling = day.samples.filter((sample) => sample.state === "filling");
   const daySettled = day.samples.filter((sample) => sample.state === "settled");
   /* The scene is tall enough that several entries are on screen at once, so the
      property to assert is that no entry is ever skipped: at some sampled frame each
-     one is mid-arrival, and once the day has closed every one of them is complete. */
+     one is mid-arrival, the closing line stays below landing while anything is still
+     arriving ("the day fills in, then the line lands" — DayScene), and once the day
+     has closed every one of them is complete.
+     The earlier form asserted `state === "filling" implies closing < 0.9`, which
+     cannot hold: the scene defines "settled" as *the closing line having arrived*,
+     so a sample in the closing's last sliver legitimately reads filling with a
+     closing value in [0.9, 1). It used to pass only because the sampler skipped
+     that sliver. */
   const entryNumbers = [0, 1, 2, 3].map((index) =>
     day.samples.filter((sample) => {
       const value = sample.entries[index] ?? 0;
       return value > 0.05 && value < 0.95;
     }).length,
   );
+  const closingWaits = day.samples
+    .filter((sample) => sample.entries.some((value) => value < 0.98))
+    .every((sample) => sample.closing < 0.9);
   check(
     "the entries arrive one at a time, then the day closes",
     entryNumbers.every((count) => count > 0) &&
       daySettled.length > 0 &&
       daySettled.every((sample) => sample.entries.every((value) => value > 0.98)) &&
-      dayFilling.every((sample) => sample.closing < 0.9),
-    `mid-arrival frames per entry: ${entryNumbers.join("/")} · ` +
+      closingWaits,
+    `mid-arrival frames per entry: ${entryNumbers.join("/")} · closing waits for the fill: ${closingWaits} · ` +
       day.samples
         .map(
           (sample) =>
@@ -1493,22 +1497,42 @@ try {
     `(async () => {
       const section = document.querySelector('#views');
       const stage = document.querySelector('.views-stage');
-      const stageTop = stage.getBoundingClientRect().top + window.scrollY;
+      const sticky = document.querySelector('.views-sticky');
+      const pinTarget = parseFloat(getComputedStyle(sticky).top) || 0;
       const seconds = stage.getBoundingClientRect().height + 400;
       const span = { overview: [], courses: [], calendar: [] };
       let progressAtStageTop = null;
+      /* The pin's own bookkeeping, asserted below: which projection is current
+         when the panel first arrives at its pinned position, and how far the
+         progress had reached when it left it. Together they say "the pin comes
+         first, the story follows it, and the story is over by the release". */
+      let pinView = null;
+      let releaseProgress = null;
       for (let offset = 0; offset <= seconds; offset += 20) {
-        window.scrollTo({ top: Math.max(0, stageTop - 200 + offset), behavior: 'auto' });
+        /* Anchored to the stage's *live* position at every step, and scrolled
+           with 'instant'. The stylesheet gives scrolling a smooth behaviour
+           (global.css), which 'auto' defers to — with 'auto' every sample
+           chased an animation and the capture demo's mid-walk height change
+           skewed the lag differently around each boundary, which polluted the
+           measured bands. Re-anchoring also absorbs that height change. */
+        const stageDocTop = stage.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: Math.max(0, stageDocTop - 200 + offset), behavior: 'instant' });
         await new Promise((resolve) => setTimeout(resolve, 70));
         /* Read the scene's own published progress. The hook writes sceneRect
            ("top:height:rawProgress") onto the element that owns the ref — the
-           section — from the same measure pass that drives the projections. */
-        const raw = section.dataset.sceneRect;
+           stage — from the same measure pass that drives the projections. */
+        const raw = stage.dataset.sceneRect;
         const progress = raw ? Number(raw.split(':')[2]) : 0;
         const clamped = Math.min(1, Math.max(0, Number.isFinite(progress) ? progress : 0));
         span[section.dataset.view]?.push(clamped);
-        if (progressAtStageTop === null && window.scrollY >= stageTop) {
+        if (progressAtStageTop === null && stage.getBoundingClientRect().top <= 0) {
           progressAtStageTop = clamped;
+        }
+        const stickyTop = sticky.getBoundingClientRect().top;
+        if (pinView === null && stickyTop <= pinTarget + 2) {
+          pinView = section.dataset.view;
+        } else if (pinView !== null && releaseProgress === null && stickyTop < pinTarget - 2) {
+          releaseProgress = clamped;
         }
       }
       const band = {};
@@ -1517,7 +1541,7 @@ try {
           ? { low: +Math.min(...values).toFixed(3), high: +Math.max(...values).toFixed(3) }
           : null;
       }
-      return { band, progressAtStageTop };
+      return { band, progressAtStageTop, pinView, releaseProgress };
     })()`,
   );
   const bandSummary = Object.entries(reachability.band).map(([view, values]) =>
@@ -1537,6 +1561,21 @@ try {
       return Math.max(...widths) <= Math.min(...widths) * 2.5;
     })(),
     bandSummary.join(" | "),
+  );
+  /* The two properties the Scene 04 pacing rework exists to guarantee. The pin
+     must arrive *before* the story does — a reader who has just watched the
+     panel come up is still on the overview — and the story must be over by the
+     time the panel releases, so the pinned stretch never ends in a dead tail
+     of scrolling after the last projection has settled. */
+  check(
+    "the pin arrives before the story does (the overview is still current when the panel pins)",
+    reachability.pinView === "overview",
+    `pinView=${reachability.pinView}`,
+  );
+  check(
+    "the story is finished by the time the panel releases (no dead tail)",
+    typeof reachability.releaseProgress === "number" && reachability.releaseProgress >= 0.97,
+    `progress at release=${reachability.releaseProgress}`,
   );
   /* The overview must be the state a reader arrives on, not a transition already
      in flight. Asserted structurally — the overview owns progress 0 and the pin

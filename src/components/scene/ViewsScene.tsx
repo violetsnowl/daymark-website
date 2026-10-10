@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useCopy } from "../../app/LocaleProvider.tsx";
 import { showcase, showcaseStrings } from "../../content/demo.ts";
-import { useReducedMotion, useSceneProgress } from "../../motion/index.ts";
+import { useReducedMotion, useSceneProgress, stepReveal } from "../../motion/index.ts";
 import type { PlanView } from "../../content/types.ts";
 import {
   ItemRow,
@@ -28,13 +28,15 @@ import { SceneHeader } from "./SceneHeader.tsx";
 
 const VIEW_ORDER: PlanView[] = ["overview", "courses", "calendar"];
 
-/** Scroll mapping (W4 §4.5): overview settles → course → calendar. */
-const COURSE_UNTIL = 0.47;
-const CALENDAR_UNTIL = 0.75;
+/** Scroll mapping (W4 §4.5's bands, expressed against the stage-anchored
+ *  window): a projection becomes current at the middle of its fade —
+ *  0.35 for courses, 0.78 for calendar. */
+const COURSE_FROM = 0.35;
+const CALENDAR_FROM = 0.78;
 
 function viewForProgress(progress: number, pinned: boolean): PlanView {
-  if (!pinned || progress < COURSE_UNTIL) return "overview";
-  if (progress < CALENDAR_UNTIL) return "courses";
+  if (!pinned || progress < COURSE_FROM) return "overview";
+  if (progress < CALENDAR_FROM) return "courses";
   return "calendar";
 }
 
@@ -42,7 +44,7 @@ export function ViewsScene() {
   const copy = useCopy();
   const demo = showcaseStrings[copy.locale];
   const reducedMotion = useReducedMotion();
-  const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const [pinned, setPinned] = useState(false);
 
   /* The pinned stage is a desktop affordance. Below 1024px and whenever motion
@@ -57,10 +59,14 @@ export function ViewsScene() {
     return () => query.removeEventListener("change", update);
   }, [reducedMotion]);
 
-  /* The driver spans the pinned travel, and its **start** is placed at the bottom
-   * edge of the screen.
+  /* The driver is measured against the **stage**, not the section: the stage is
+   * the element whose travel the reader is inside — it pins when its top passes
+   * under the nav and releases when its travel runs out. Measured against the
+   * section, the same fractions pick up the header height above the stage, so
+   * the pin, the first switch and the release drift apart whenever the header
+   * changes.
    *
-   * Three mistakes shaped these numbers, all three reported from real use:
+   * Four mistakes shaped this scene, all reported from real use:
    *   1. A window longer than the hold left the calendar unreachable on a page
    *      scroll (it only appeared to work while the pointer was over the panel).
    *   2. A window that *started* too early meant the first transition fired while
@@ -70,29 +76,47 @@ export function ViewsScene() {
    *      static frame for ~1700px of scrolling after the last projection had
    *      settled — the scrollbar moved and the picture did not, so the section
    *      read as finished while the reader kept scrolling toward its closing line.
+   *   4. Switches that fired on a threshold with a *timed* fade left long inert
+   *      holds: the first switch fired mid-rise, before the panel had even
+   *      arrived, and once pinned the reader scrolled through hundreds of pixels
+   *      in which the picture did not respond. The scene read as a wait for two
+   *      remote changes, not as a response to the scrolling.
    *
-   * `startAt: 0.9` is the fix for the second: progress 0 sits at `0.9 × viewport`
-   * from the top, i.e. just below the fold, so the overview is current and fully
-   * settled while the whole panel is still scrolling up into place.
-   *
-   * `endAt: −1.41` is the fix for the third: progress now reaches 1 shortly before
-   * the panel releases, so the last projection settles into the closing line
-   * rather than into a long static hold. `startAt − endAt` = 2.31 viewports = the
-   * hold measured at 1440×900 (stage 1800px, panel 576px, pin offset 129px, plus
-   * 12svh of headroom ≈ 1203px). Change the stage height in `site.css` and this
-   * has to change with it. */
-  const { progress } = useSceneProgress(sectionRef, {
-    startAt: 0.9,
-    endAt: -1.41,
+   * `startAt: 0.3` puts progress 0 just above the pin (~140px of rise left): the
+   * reader arrives on the overview, the panel finishes coming up, and the story
+   * only starts once it has. `endAt: −1.22` puts progress 1 exactly at the
+   * release, so the calendar settles into the release rather than into a dead
+   * stretch. Measured at 1440×900 (stage 1800px, sticky 576px, pin offset
+   * 128px): pin at progress ≈0.10, release at ≈1.00. Change the stage height in
+   * `site.css` and this has to change with it.
+   */
+  const { progress } = useSceneProgress(stageRef, {
+    startAt: 0.3,
+    endAt: -1.22,
     disabled: !pinned,
   });
+
+  /* The cross-fade itself is scroll-linked (W4 §4.5 asks for scroll-linked
+   * values over several timed triggers): the overview fades out over 0.20→0.50
+   * and the calendar fades in over 0.66→0.90; everything between is derived
+   * from those two, so no beat of the pinned stretch is inert. `arrivesAt` is
+   * where each fade completes, `span` is how much of the window it takes. */
+  const overviewOut = stepReveal(progress, 0.5, { span: 0.3 });
+  const calendarIn = stepReveal(progress, 0.9, { span: 0.24 });
+  const viewOpacity: Record<PlanView, number> = {
+    overview: 1 - overviewOut.eased,
+    courses: overviewOut.eased - calendarIn.eased,
+    calendar: calendarIn.eased,
+  };
 
   const activeView = viewForProgress(progress, pinned);
   const activeIndex = VIEW_ORDER.indexOf(activeView);
 
-  const panel = (view: PlanView) => (
+  const panel = (view: PlanView, scrub = false) => (
     <ViewsPanel
       activeView={view}
+      scrub={scrub}
+      opacities={scrub ? viewOpacity : undefined}
       windowLabel={copy.views.windowLabel}
       brandCn={copy.nav.brandCn}
       brandEn={copy.nav.brandEn}
@@ -107,7 +131,6 @@ export function ViewsScene() {
   return (
     <section
       id="views"
-      ref={sectionRef}
       className="scene scene-views"
       aria-labelledby="views-title"
       data-pinned={pinned}
@@ -123,14 +146,16 @@ export function ViewsScene() {
         />
 
         {pinned ? (
-          <div className="views-stage">
+          /* The stage owns the ref: the scroll window is measured against it
+             (see above), and it is the element that pins and releases. */
+          <div className="views-stage" ref={stageRef}>
             <div className="views-sticky">
               <ViewSwitcher
                 labels={copy.views.views}
                 activeIndex={activeIndex}
                 anchorPrefix="views"
               />
-              {panel(activeView)}
+              {panel(activeView, true)}
               <p className="views-caption" aria-live="polite">
                 {copy.views.views[activeView].caption}
               </p>
@@ -197,6 +222,8 @@ function ViewSwitcher({
 
 function ViewsPanel({
   activeView,
+  scrub = false,
+  opacities,
   windowLabel,
   brandCn,
   brandEn,
@@ -207,6 +234,10 @@ function ViewsPanel({
   sectionTitle,
 }: {
   activeView: PlanView;
+  /** Scroll-linked cross-fade (pinned mode): each projection carries its own
+   *  `--o`, computed from the scene's window in ViewsScene. */
+  scrub?: boolean;
+  opacities?: Record<PlanView, number>;
   windowLabel: (view: string) => string;
   brandCn: string;
   brandEn: string;
@@ -252,8 +283,16 @@ function ViewsPanel({
 
       {/* All three projections share one grid cell, so the item keeps its line
           and the change reads as the same object being re-seen (W4 §4.3). */}
-      <div className="views-panels" data-active={activeView}>
-        <div className="views-panel" data-panel="overview">
+      <div
+        className="views-panels"
+        data-active={activeView}
+        data-scrub={scrub ? "true" : undefined}
+      >
+        <div
+          className="views-panel"
+          data-panel="overview"
+          style={opacities ? ({ "--o": opacities.overview } as CSSProperties) : undefined}
+        >
           <div className="views-context">
             <p className="product-section-label">{sectionTitle}</p>
           </div>
@@ -273,7 +312,11 @@ function ViewsPanel({
           </ul>
         </div>
 
-        <div className="views-panel" data-panel="courses">
+        <div
+          className="views-panel"
+          data-panel="courses"
+          style={opacities ? ({ "--o": opacities.courses } as CSSProperties) : undefined}
+        >
           <div className="views-context">
             <p className="product-section-label">{mainItem.course}</p>
           </div>
@@ -285,7 +328,11 @@ function ViewsPanel({
           </ul>
         </div>
 
-        <div className="views-panel" data-panel="calendar">
+        <div
+          className="views-panel"
+          data-panel="calendar"
+          style={opacities ? ({ "--o": opacities.calendar } as CSSProperties) : undefined}
+        >
           <div className="views-context">
             <div className="views-calendar-days">
               {calendar.days.map((day) => (

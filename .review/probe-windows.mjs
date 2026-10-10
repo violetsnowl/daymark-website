@@ -163,7 +163,7 @@ try {
         scrollY: Math.round(window.scrollY),
         view: views.dataset.view,
         stickyTop: Math.round(sticky.getBoundingClientRect().top),
-        sceneRect: views.dataset.sceneRect,
+        sceneRect: document.querySelector('.views-stage').dataset.sceneRect,
       };
     })()`);
     console.log(
