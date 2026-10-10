@@ -636,10 +636,10 @@ try {
 
   /* ---------- 9. Scene 04 — One Item, Many Views (W4 §4) ---------- */
   await goTo(client, "/", 1440, 900);
-  /* Walked across the stage, not the page: the pinned stretch is ~300px of
-     travel now, and a page-wide step grid skips whole projections (each owns
-     ~100px). 'instant' — see the smooth-behaviour note in the reachability
-     walk. */
+  /* Walked across the stage, not the page: the pinned stretch is ~400px of
+     travel now (flanks ~100px, 课程 ~200px), and a page-wide step grid skips
+     whole projections. 'instant' — see the smooth-behaviour note in the
+     reachability walk. */
   const viewScan = await evaluate(
     client,
     `(async () => {
@@ -1596,9 +1596,9 @@ try {
       let pinView = null;
       let releaseProgress = null;
       let pinCentreDelta = null;
-      /* 10px steps: the pinned travel is short (~300px), and the thirds guard
-         compares band widths — at 20px steps the sampling error alone could
-         reach the tolerance. */
+      /* 10px steps: the pinned travel is short (~400px), and the dwell-width
+         guard compares band widths — at 20px steps the sampling error alone
+         could reach the tolerance. */
       for (let offset = 0; offset <= seconds; offset += 10) {
         /* Anchored to the stage's *live* position at every step, and scrolled
            with 'instant'. The stylesheet gives scrolling a smooth behaviour
@@ -1653,19 +1653,26 @@ try {
       Object.values(reachability.band).every((values) => values.high - values.low >= 0.12),
     `progressAtStageTop=${reachability.progressAtStageTop} | ${bandSummary.join(" | ")}`,
   );
+  /* User trial (2026-10-10): the middle projection is given **twice the dwell**
+     of each flank — 总览 and 日历 ~a quarter each, 课程 ~half. This replaces
+     the earlier equal-thirds guard. */
   check(
-    "the three projections split the pinned travel into roughly equal thirds",
+    "the middle projection is given twice the dwell of the others",
     (() => {
-      const widths = Object.values(reachability.band).filter(Boolean).map((values) => values.high - values.low);
-      if (widths.length !== 3) return false;
-      return Math.max(...widths) <= Math.min(...widths) * 1.3;
+      const { overview, courses, calendar } = reachability.band;
+      if (!overview || !courses || !calendar) return false;
+      const flank = (overview.high - overview.low + (calendar.high - calendar.low)) / 2;
+      if (flank <= 0) return false;
+      const ratio = (courses.high - courses.low) / flank;
+      return ratio >= 1.7 && ratio <= 2.3;
     })(),
     bandSummary.join(" | "),
   );
   /* The user's measure for this scene: it carries the story, it must not hold
-     the reader. Travel is fixed in pixels (~100px per projection — one to two
-     wheel clicks per page); this guards against a future edit quietly turning
-     the passage back into a scroll marathon. */
+     the reader. Travel is fixed in pixels — ~100px for each flank, ~200px for
+     the middle (user trial) — about one to two wheel clicks per page; this
+     guards against a future edit quietly turning the passage back into a
+     scroll marathon. */
   const travelPx = await evaluate(
     client,
     `(() => {

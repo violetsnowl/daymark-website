@@ -28,28 +28,29 @@ import { SceneHeader } from "./SceneHeader.tsx";
 
 const VIEW_ORDER: PlanView[] = ["overview", "courses", "calendar"];
 
-/** The pinned travel reads as **three equal thirds** — overview, courses,
- *  calendar — with one cross-fade centred on each boundary (its span is split
- *  half into the ending third and half into the starting third, so each
- *  projection owns exactly 1/3 of the travel). The travel itself is
- *  `TRAVEL_PX`: ~100px per projection at every viewport, about one to two
- *  wheel clicks per page. That is the user's stated measure for this scene —
- *  it carries the story, it must not hold the reader.
+/** The pinned travel reads as **1 : 2 : 1 quarters** — overview, courses,
+ *  calendar. The crossfade midpoints sit at the quarters (0.25 / 0.75), so
+ *  each flank owns ~a quarter of the travel and 课程 owns ~half: entering
+ *  shows 总览, leaving holds 日历, and the middle projection — which used to
+ *  flash past as a sliver — gets twice their dwell (user trial, 2026-10-10:
+ *  先设 2 倍试试). At `TRAVEL_PX` = 400 that is ~100px / 200px / 100px,
+ *  ~one to two wheel clicks per page; the passage still carries the story,
+ *  it does not hold the reader.
  *
  *  User rulings (2026-10-10): "arrived" means the object is **vertically
- *  centred**, from that moment the three projections divide the scroll
- *  equally, and the **whole scene pins as one object** — chapter marker,
- *  title, switcher, product window and caption together. These replace the
+ *  centred**, from that moment the projections divide the scroll 1 : 2 : 1,
+ *  and the **whole scene pins as one object** — chapter marker, title,
+ *  switcher, product window and caption together. These replace the
  *  W4 §4.5 suggested band table and the earlier long travels, while keeping
  *  §4.5's actual requirement: scroll-linked values, not trigger stamps. */
-const THIRD = 1 / 3;
 const FADE_SPAN = 0.2;
-const COURSE_FROM = THIRD;
-const CALENDAR_FROM = 2 * THIRD;
+/** Crossfade midpoints: 总览 → 课程 at 0.25, 课程 → 日历 at 0.75. */
+const COURSE_FROM = 0.25;
+const CALENDAR_FROM = 0.75;
 
 /** Pinned travel, fixed in pixels so the wheel feel is identical on every
  *  display. The stage is sized to the measured object height + this. */
-const TRAVEL_PX = 300;
+const TRAVEL_PX = 400;
 
 function viewForProgress(progress: number, pinned: boolean): PlanView {
   if (!pinned || progress < COURSE_FROM) return "overview";
@@ -96,7 +97,7 @@ export function ViewsScene() {
     const measure = () => {
       const viewport = window.innerHeight || 1;
       const height = sticky.getBoundingClientRect().height;
-      /* Stage = pinned object + fixed travel → each projection owns TRAVEL_PX/3. */
+      /* Stage = pinned object + fixed travel → the flanks own TRAVEL_PX/4 each, the middle TRAVEL_PX/2. */
       stage.style.setProperty("--views-stage-height", `${height + TRAVEL_PX}px`);
       const stageHeight = stage.getBoundingClientRect().height;
       const travel = Math.max(1, stageHeight - height);
@@ -152,13 +153,13 @@ export function ViewsScene() {
     disabled: !pinned,
   });
 
-  /* The cross-fades are scroll-linked (W4 §4.5), one centred on each third
-   * boundary: the overview fades out over 0.233→0.433 and the calendar fades
-   * in over 0.567→0.767; everything between is derived from those two, so no
-   * beat of the pinned stretch is inert. `arrivesAt` is where each fade
-   * completes, `span` how much of the window it takes. */
-  const overviewOut = stepReveal(progress, THIRD + FADE_SPAN / 2, { span: FADE_SPAN });
-  const calendarIn = stepReveal(progress, 2 * THIRD + FADE_SPAN / 2, { span: FADE_SPAN });
+  /* The cross-fades are scroll-linked (W4 §4.5), one centred on each switch
+   * point: the overview fades out over 0.15→0.35 and the calendar fades in
+   * over 0.65→0.85; everything between is derived from those two, so no beat
+   * of the pinned stretch is inert. `arrivesAt` is where each fade completes,
+   * `span` how much of the window it takes. */
+  const overviewOut = stepReveal(progress, COURSE_FROM + FADE_SPAN / 2, { span: FADE_SPAN });
+  const calendarIn = stepReveal(progress, CALENDAR_FROM + FADE_SPAN / 2, { span: FADE_SPAN });
   const viewOpacity: Record<PlanView, number> = {
     overview: 1 - overviewOut.eased,
     courses: overviewOut.eased - calendarIn.eased,
