@@ -718,7 +718,7 @@
 
 .fragment--ghost {
   top: 43%;
-  left: 36%;
+  left: 11%;
   color: color-mix(
     in srgb,
     var(--faint) calc(var(--base-opacity, 1) * var(--ex, 1) * 100%),

@@ -64,10 +64,13 @@ const LAYOUT: (FragmentLayout | null)[] = [
     size: 2,
     opacity: 1,
   },
-  /* The unresolved thought: the only fragment that has no place at the end. */
+  /* The unresolved thought: the only fragment that has no place at the end.
+     It floats in the left column beside the headline — never on the headline
+     glyphs (the old 36% left landed it inside the headline's second line and
+     read as mud once the window fix made it actually visible). */
   {
     top: "43%",
-    left: "36%",
+    left: "11%",
     align: "left",
     fromX: 20,
     fromY: -6,
@@ -84,8 +87,19 @@ export function SmallThingsScene() {
   const sectionRef = useRef<HTMLElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const { progress } = useSceneProgress(sectionRef, {
-    startAt: 0.92,
-    endAt: 0.28,
+    /* The choreography must play where the reader can see it (W3 §10.5–10.7):
+       fragments are already visible when the section becomes primary, the
+       convergence is watched, and the designed fade-out of 老师说看第五章 is
+       witnessed mid-screen. The window therefore covers the section's whole
+       pass through the viewport — progress 0 as the section top is 25vh up
+       from the fold (老师说看第五章 rising in at the bottom edge, not fading),
+       progress 1 as it is 75vh above the fold — 1.0 viewport of travel, which
+       is W3 §11's recommended duration. An earlier mapping (0.92 → 0.28)
+       completed the entire animation while the section was still entering:
+       the two exiting fragments' fades ran off-screen and they were never
+       readable — measured: 0px of visible window. */
+    startAt: 0.25,
+    endAt: -0.75,
     disabled: reducedMotion,
   });
 
