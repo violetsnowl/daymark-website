@@ -1418,25 +1418,22 @@
 }
 
 @media (min-width: 1024px) {
-  /* The panel parks when it is vertically centred (top = (100svh − its own
-     height)/2 — the fallback below; ViewsScene.tsx writes the measured value
-     to --views-pin-top) and the scroll window IS the pinned travel: stage
-     height − sticky height, 1800 − 576 = 1224px at 1440×900, read as three
-     equal thirds (overview / courses / calendar).
-     The height was 300svh until review: with the last projection settled several
-     hundred pixels before the panel released, the page held a static frame for
-     ~1700px of scrolling, which reads as the section having ended while the
-     scrollbar keeps moving. 200svh gives each projection enough travel to be read
-     and reaches its final state close to the release. */
+  /* The stage is sized by ViewsScene.tsx to the measured pinned object plus
+     the fixed pinned travel (TRAVEL_PX = 300px → each projection owns 100px of
+     scrolling, about one to two wheel clicks). The fallback approximates it
+     before the first measurement: min-height + 300px.
+     History: the height was 300svh, then 200svh; both read as the section
+     ending while the scrollbar kept moving, and both asked the reader to
+     scroll for seconds inside a passage that only needs to tell a story. */
   .views-stage {
-    height: 200svh;
+    height: var(--views-stage-height, calc(72svh + 228px));
   }
   .views-sticky {
     position: sticky;
-    /* Vertically centred — "arrived" means centred, not tucked under the nav
+    /* Vertically centred — "arrived" means centred, never tucked under the nav
        (user ruling). Kept in lockstep with the scroll window: both come from
        the same measured box (ViewsScene.tsx). */
-    top: var(--views-pin-top, calc((100svh - (72svh - var(--nav-height))) / 2));
+    top: var(--views-pin-top, max(calc((100svh - (72svh - var(--nav-height))) / 2), calc(var(--nav-height) + 16px)));
     display: grid;
     grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
     column-gap: clamp(28px, 4vw, 56px);
@@ -1444,6 +1441,13 @@
     /* Shorter than a full viewport: the switcher and the product window are one
        composed object, not a screen-filling dashboard. */
     min-height: calc(72svh - var(--nav-height));
+  }
+  /* The chapter header is part of the pinned object (user ruling): it spans
+     the grid and pins with everything else, so the whole scene centres and
+     holds as one. */
+  .views-sticky .scene-header {
+    grid-column: 1 / -1;
+    margin-bottom: clamp(24px, 3.6vh, 44px);
   }
 }
 

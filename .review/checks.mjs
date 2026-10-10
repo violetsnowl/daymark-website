@@ -573,14 +573,25 @@ try {
 
   /* ---------- 9. Scene 04 — One Item, Many Views (W4 §4) ---------- */
   await goTo(client, "/", 1440, 900);
+  /* Walked across the stage, not the page: the pinned stretch is ~300px of
+     travel now, and a page-wide step grid skips whole projections (each owns
+     ~100px). 'instant' — see the smooth-behaviour note in the reachability
+     walk. */
   const viewScan = await evaluate(
     client,
     `(async () => {
       const section = document.querySelector('#views');
-      const range = document.documentElement.scrollHeight - window.innerHeight;
+      const stage = document.querySelector('.views-stage');
       const byView = {};
-      for (let step = 0; step <= 80; step += 1) {
-        window.scrollTo({ top: (range * step) / 80, behavior: 'auto' });
+      const stageDocTop = stage.getBoundingClientRect().top + window.scrollY;
+      const start = Math.max(0, stageDocTop - window.innerHeight);
+      const end = Math.min(
+        document.documentElement.scrollHeight - window.innerHeight,
+        stageDocTop + stage.getBoundingClientRect().height,
+      );
+      const steps = 60;
+      for (let step = 0; step <= steps; step += 1) {
+        window.scrollTo({ top: start + ((end - start) * step) / steps, behavior: 'instant' });
         await new Promise((resolve) => setTimeout(resolve, 90));
         const view = section.dataset.view;
         if (section.dataset.pinned !== 'true') continue;
@@ -634,17 +645,30 @@ try {
   /* The nav highlight is read together with the view it belongs to, and scoped
      to the views window: the hero shows a product window too, and its nav is
      always on the overview. */
+  /* Walked across the views stage itself, not the whole page: the pinned
+     stretch is short now (~300px of travel), and a page-wide 41-step grid
+     skips entire projections — the check then reports a missing view that the
+     reader would never miss. 'instant' for the same reason as the reachability
+     walk: the stylesheet's smooth behaviour turns 'auto' into an animation and
+     samples chase it. */
   const navFollows = await evaluate(
     client,
     `(async () => {
       const section = document.querySelector('#views');
+      const stage = document.querySelector('.views-stage');
       const nav = document.querySelector('.product-window--views .product-nav');
-      const range = document.documentElement.scrollHeight - window.innerHeight;
       const mismatches = [];
       const observed = {};
-      for (let step = 0; step <= 40; step += 1) {
-        window.scrollTo({ top: (range * step) / 40, behavior: 'auto' });
-        await new Promise((resolve) => setTimeout(resolve, 200));
+      const stageDocTop = stage.getBoundingClientRect().top + window.scrollY;
+      const start = Math.max(0, stageDocTop - window.innerHeight);
+      const end = Math.min(
+        document.documentElement.scrollHeight - window.innerHeight,
+        stageDocTop + stage.getBoundingClientRect().height,
+      );
+      const steps = 60;
+      for (let step = 0; step <= steps; step += 1) {
+        window.scrollTo({ top: start + ((end - start) * step) / steps, behavior: 'instant' });
+        await new Promise((resolve) => setTimeout(resolve, 90));
         if (section.dataset.pinned !== 'true') continue;
         const view = section.dataset.view;
         const active = nav?.querySelector('li.is-active')?.dataset.productView ?? null;
@@ -1509,7 +1533,10 @@ try {
       let pinView = null;
       let releaseProgress = null;
       let pinCentreDelta = null;
-      for (let offset = 0; offset <= seconds; offset += 20) {
+      /* 10px steps: the pinned travel is short (~300px), and the thirds guard
+         compares band widths — at 20px steps the sampling error alone could
+         reach the tolerance. */
+      for (let offset = 0; offset <= seconds; offset += 10) {
         /* Anchored to the stage's *live* position at every step, and scrolled
            with 'instant'. The stylesheet gives scrolling a smooth behaviour
            (global.css), which 'auto' defers to — with 'auto' every sample
@@ -1532,9 +1559,14 @@ try {
         const stickyTop = sticky.getBoundingClientRect().top;
         if (pinView === null && stickyTop <= pinTarget + 2) {
           pinView = section.dataset.view;
-          /* Where the panel actually parks, against true vertical centre. */
+          /* Where the object actually parks, against its computed target:
+             vertically centred, or the nav floor on short viewports. */
           pinCentreDelta = Math.round(
-            stickyTop - (window.innerHeight - sticky.getBoundingClientRect().height) / 2,
+            stickyTop -
+              Math.max(
+                (window.innerHeight - sticky.getBoundingClientRect().height) / 2,
+                (document.querySelector('.site-nav')?.getBoundingClientRect().height ?? 72) + 16,
+              ),
           );
         } else if (pinView !== null && releaseProgress === null && stickyTop < pinTarget - 2) {
           releaseProgress = clamped;
@@ -1566,6 +1598,22 @@ try {
       return Math.max(...widths) <= Math.min(...widths) * 1.3;
     })(),
     bandSummary.join(" | "),
+  );
+  /* The user's measure for this scene: it carries the story, it must not hold
+     the reader. Travel is fixed in pixels (~100px per projection — one to two
+     wheel clicks per page); this guards against a future edit quietly turning
+     the passage back into a scroll marathon. */
+  const travelPx = await evaluate(
+    client,
+    `(() => {
+      const m = /^px:([0-9.]+)\\+([0-9.]+)$/.exec(document.querySelector('.views-stage')?.dataset.sceneWindow ?? '');
+      return m ? Math.round(Number(m[2])) : null;
+    })()`,
+  );
+  check(
+    "the pinned travel stays a short passage (each projection ≈ 1–2 wheel clicks)",
+    typeof travelPx === "number" && travelPx >= 200 && travelPx <= 420,
+    `travel=${travelPx}px`,
   );
   /* "Arrived" now means *vertically centred* (user ruling, 2026-10-10): the
      panel must park at (viewport − panel height)/2, not tucked under the nav. */

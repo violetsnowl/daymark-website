@@ -124,7 +124,7 @@ src/
 `.review/` 下是本地验证工具（不属于站点产物，也不参与构建）：
 
 ```bash
-node .review/checks.mjs        http://127.0.0.1:4173/   # 89 项浏览器行为断言（主入口）
+node .review/checks.mjs        http://127.0.0.1:4173/   # 90 项浏览器行为断言（主入口）
 node .review/probe-page-end.mjs http://127.0.0.1:4173/  # 六视口的场景边界与"离开后是否还变"
 node .review/measure.mjs       http://127.0.0.1:4173/   # 参考视口 DOM 几何测量
 node .review/shots.mjs         http://127.0.0.1:4173/   # 参考视口截图（按状态定位）
@@ -150,10 +150,7 @@ node .review/probe-bands.mjs   http://127.0.0.1:4173/ 1440 900   # 逐帧打出 
 1. `public/favicon.svg` 是按品牌标记几何重绘的矢量版本，最终上线前应与正式品牌资产核对。
 2. Logo 目前只使用产品 App 既有的标记几何；若存在正式矢量资产，应替换为它。
 3. 英文文案为独立撰写的第一版，V2 锁定前还需要一轮语言润色。
-4. **两处"成对参数"**需要同步修改，没有自动化检查能抓住不一致：
-   - Scene 04 的 `.views-stage` 高度（`200svh`）↔ `ViewsScene.tsx` 的 `startAt/endAt`；
-   - Scene 07 的 `.scene-sync` 尾部空间 ↔ 它的 `leadIn`。
-   两处都有交叉注释。
+4. **一处"成对参数"**需要同步修改，没有自动化检查能抓住不一致：Scene 07 的 `.scene-sync` 尾部空间 ↔ 它的 `leadIn`。它有交叉注释。（Scene 04 原先也是手工成对——舞台高度 ↔ 组件里的窗口——现在由同一次测量写入并由断言看守，不再需要人肉同步；见 REVIEW §0D 第四轮。）
 5. **远端仓库尚未配置** —— 本地已有首次提交（分支 `main`），但没有 remote，还未推送。见 [`HANDOFF.md`](./HANDOFF.md) §7。
 
 ---

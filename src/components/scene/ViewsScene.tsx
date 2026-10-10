@@ -31,19 +31,25 @@ const VIEW_ORDER: PlanView[] = ["overview", "courses", "calendar"];
 /** The pinned travel reads as **three equal thirds** — overview, courses,
  *  calendar — with one cross-fade centred on each boundary (its span is split
  *  half into the ending third and half into the starting third, so each
- *  projection owns exactly 1/3 of the travel). At 1440×900 the travel is
- *  1224px: each projection owns 408px, each fade spans ~245px.
+ *  projection owns exactly 1/3 of the travel). The travel itself is
+ *  `TRAVEL_PX`: ~100px per projection at every viewport, about one to two
+ *  wheel clicks per page. That is the user's stated measure for this scene —
+ *  it carries the story, it must not hold the reader.
  *
- *  This is a user ruling (2026-10-10): "arrived" means the panel is
- *  **vertically centred**, and from that moment the three projections divide
- *  the scroll equally. It replaces an earlier distribution that read as
- *  "overview for the first half, calendar squeezed into the last 300px" —
- *  and the W4 §4.5 suggested band table — while keeping §4.5's actual
- *  requirement: scroll-linked values, not trigger stamps. */
+ *  User rulings (2026-10-10): "arrived" means the object is **vertically
+ *  centred**, from that moment the three projections divide the scroll
+ *  equally, and the **whole scene pins as one object** — chapter marker,
+ *  title, switcher, product window and caption together. These replace the
+ *  W4 §4.5 suggested band table and the earlier long travels, while keeping
+ *  §4.5's actual requirement: scroll-linked values, not trigger stamps. */
 const THIRD = 1 / 3;
 const FADE_SPAN = 0.2;
 const COURSE_FROM = THIRD;
 const CALENDAR_FROM = 2 * THIRD;
+
+/** Pinned travel, fixed in pixels so the wheel feel is identical on every
+ *  display. The stage is sized to the measured object height + this. */
+const TRAVEL_PX = 300;
 
 function viewForProgress(progress: number, pinned: boolean): PlanView {
   if (!pinned || progress < COURSE_FROM) return "overview";
@@ -71,15 +77,17 @@ export function ViewsScene() {
     return () => query.removeEventListener("change", update);
   }, [reducedMotion]);
 
-  /* The pin position and the scroll window come from one measurement pass:
-   * the panel parks when it is vertically centred — `--views-pin-top` =
-   * (viewport − panel height) / 2, read by `site.css` — and the window is the
-   * pinned travel itself: it opens at that same offset and spans stage height
-   * − panel height (1800 − 576 = 1224px at 1440×900). Re-measured on resize
-   * and whenever either box changes, so the two can never drift apart.
+  /* The pin position, the stage size and the scroll window come from one
+   * measurement pass. The scene pins when the whole object is vertically
+   * centred — `--views-pin-top` = (viewport − object height) / 2, held below
+   * the nav — and the stage is sized to the measured object plus the fixed
+   * pinned travel (`TRAVEL_PX`, written to `--views-stage-height`), so the
+   * window is exactly that travel: progress 0 at the pin, progress 1 at the
+   * release. Re-measured on resize and whenever a box changes; the pin, the
+   * stage and the window can never drift apart.
    *
    * The stage owns the ref: the scroll window is measured against it. */
-  const [windowPx, setWindowPx] = useState({ startOffset: 600, travel: 600 });
+  const [windowPx, setWindowPx] = useState({ startOffset: 600, travel: TRAVEL_PX });
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
@@ -88,8 +96,15 @@ export function ViewsScene() {
     const measure = () => {
       const viewport = window.innerHeight || 1;
       const height = sticky.getBoundingClientRect().height;
-      const pinTop = Math.max(0, (viewport - height) / 2);
-      const travel = Math.max(1, stage.getBoundingClientRect().height - height);
+      /* Stage = pinned object + fixed travel → each projection owns TRAVEL_PX/3. */
+      stage.style.setProperty("--views-stage-height", `${height + TRAVEL_PX}px`);
+      const stageHeight = stage.getBoundingClientRect().height;
+      const travel = Math.max(1, stageHeight - height);
+      /* Centred — but never tucked under the nav on short viewports, where the
+         object is close to a full screen. */
+      const navHeight =
+        document.querySelector(".site-nav")?.getBoundingClientRect().height ?? 72;
+      const pinTop = Math.max((viewport - height) / 2, navHeight + 16);
       sticky.style.setProperty("--views-pin-top", `${pinTop}px`);
       setWindowPx((current) =>
         Math.abs(current.startOffset - pinTop) < 0.5 && Math.abs(current.travel - travel) < 0.5
@@ -169,6 +184,15 @@ export function ViewsScene() {
     />
   );
 
+  const sceneHeader = (
+    <SceneHeader
+      id="views-title"
+      index={copy.views.index}
+      title={copy.views.title}
+      description={copy.views.description}
+    />
+  );
+
   return (
     <section
       id="views"
@@ -179,18 +203,13 @@ export function ViewsScene() {
     >
       <div className="env-light views-env" aria-hidden="true" />
       <div className="container">
-        <SceneHeader
-          id="views-title"
-          index={copy.views.index}
-          title={copy.views.title}
-          description={copy.views.description}
-        />
-
         {pinned ? (
-          /* The stage owns the ref: the scroll window is measured against it
-             (see above), and it is the element that pins and releases. */
+          /* The whole scene — chapter marker, title, switcher, product window,
+             caption — is one pinned object (user ruling): it centres as a
+             whole, and the three projections play across the fixed travel. */
           <div className="views-stage" ref={stageRef}>
             <div className="views-sticky" ref={stickyRef}>
+              {sceneHeader}
               <ViewSwitcher
                 labels={copy.views.views}
                 activeIndex={activeIndex}
@@ -203,19 +222,22 @@ export function ViewsScene() {
             </div>
           </div>
         ) : (
-          <div className="views-sequence">
-            {VIEW_ORDER.map((view, index) => (
-              <div className="views-sequence-step" key={view}>
-                <ViewSwitcher
-                  labels={copy.views.views}
-                  activeIndex={index}
-                  anchorPrefix={`views-${view}`}
-                />
-                {panel(view)}
-                <p className="views-caption">{copy.views.views[view].caption}</p>
-              </div>
-            ))}
-          </div>
+          <>
+            {sceneHeader}
+            <div className="views-sequence">
+              {VIEW_ORDER.map((view, index) => (
+                <div className="views-sequence-step" key={view}>
+                  <ViewSwitcher
+                    labels={copy.views.views}
+                    activeIndex={index}
+                    anchorPrefix={`views-${view}`}
+                  />
+                  {panel(view)}
+                  <p className="views-caption">{copy.views.views[view].caption}</p>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         <p className="scene-closing">{copy.views.closing}</p>
