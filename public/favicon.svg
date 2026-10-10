@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="拾序 Daymark">
+  <rect width="32" height="32" rx="7" fill="#F3F0E9" />
+  <path
+    d="M8 15.4A7.4 7.4 0 0 1 15.4 8h.9a5.9 5.9 0 0 1 5.9 5.9v3.8a5.9 5.9 0 0 1-5.9 5.9h-2.4A5.9 5.9 0 0 1 8 21.8Z"
+    fill="none"
+    stroke="#31564A"
+    stroke-width="2.1"
+    stroke-opacity="0.75"
+  />
+  <path
+    d="M12.4 14.5h7M12.4 18.2h4.8"
+    fill="none"
+    stroke="#31564A"
+    stroke-width="2.1"
+    stroke-linecap="round"
+  />
+</svg>

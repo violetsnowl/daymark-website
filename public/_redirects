@@ -1,0 +1,10 @@
+# Cloudflare Pages / Workers static assets.
+#
+# The prototype is a client-rendered SPA, so unknown paths still need to reach
+# index.html and let the router answer with its own 404 surface instead of a
+# bare platform error. Real static files (assets, favicon, brand images) are
+# served from disk before these rules apply, so they are left alone.
+
+/en                /index.html   200
+/en/               /index.html   200
+/*                 /index.html   200

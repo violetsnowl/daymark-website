@@ -1,0 +1,22 @@
+# Line endings are pinned to LF in the repository.
+#
+# The working tree is already all-LF, but Windows Git defaults to `core.autocrlf=true`,
+# which would rewrite files on checkout and produce whole-file diffs for whoever opens
+# this project next on a different platform. Being explicit here means the bytes in the
+# repository are the bytes on disk, on every machine.
+* text=auto eol=lf
+
+# Binary assets: never touch these.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+
+# Keep the lockfile out of diff summaries — it is generated, and a three-line change
+# to package.json can rewrite hundreds of lines of it.
+package-lock.json linguist-generated=true -diff

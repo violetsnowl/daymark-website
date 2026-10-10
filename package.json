@@ -1,0 +1,31 @@
+{
+  "name": "daymark-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Daymark / 拾序 品牌官网 — W4 scenes 01-05 (nav + hero + small things + capture + context + views)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc -b --pretty false",
+    "test": "node --test --experimental-strip-types --no-warnings src/content/parseCapture.test.ts src/content/showcaseContinuity.test.ts"
+  },
+  "dependencies": {
+    "motion": "^12.23.12",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.8.3",
+    "vite": "^6.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

@@ -1,0 +1,27 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+.env
+.env.local
+.idea
+.vscode/*
+!.vscode/extensions.json
+npm-debug.log*
+
+# Local review tooling: scripts are kept, generated artefacts are not.
+# The `**/` forms matter: .review/scratch/ holds its own scripts, and a one-level
+# pattern silently let a nested log file through.
+.review/*.png
+.review/**/*.png
+.review/*.json
+.review/**/*.json
+.review/*.log
+.review/**/*.log
+# headless Chrome profile directories, at any depth — the probes create them beside
+# the scripts and inside .review/scratch/, and they hold browser caches and model
+# files (tens of MB) that must never be committed.
+.review/**/chrome-profile*
+.review/chrome-profile*
