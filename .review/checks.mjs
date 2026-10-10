@@ -431,21 +431,26 @@ try {
           fs: parseFloat(node.style.getPropertyValue('--fs') || '1'),
         };
       });
-      /* progress 0.15 / 0.95 of the scene window (startAt 0.25, one viewport
-         of travel): the settled-but-still-scattered view, then the rest state. */
-      window.scrollTo({ top: docTop - 0.10 * vh, behavior: 'instant' });
+      /* Three samples against the scene window (startAt 0.5, one viewport of
+         travel): the primary view (every fragment now on screen), an early
+         drift sample (progress ≈ 0.15, offsets near their full scatter), and
+         the rest state (progress ≥ 1). */
+      window.scrollTo({ top: docTop - 0.12 * vh, behavior: 'instant' });
+      await pause();
+      const primary = read();
+      window.scrollTo({ top: docTop - 0.35 * vh, behavior: 'instant' });
       await pause();
       const early = read();
       window.scrollTo({ top: docTop + 0.70 * vh, behavior: 'instant' });
       await pause();
       const late = read();
-      return { early, late };
+      return { primary, early, late };
     })()`,
   );
   check(
     "every fragment is on screen when the section becomes primary",
-    ideasSample.early.length === 5 && ideasSample.early.every((fragment) => fragment.visible),
-    ideasSample.early.map((fragment) => `${fragment.text.slice(0, 6)}:${fragment.visible ? "on" : "off"}`).join(" "),
+    ideasSample.primary.length === 5 && ideasSample.primary.every((fragment) => fragment.visible),
+    ideasSample.primary.map((fragment) => `${fragment.text.slice(0, 6)}:${fragment.visible ? "on" : "off"}`).join(" "),
   );
   const fragmentTravels = ideasSample.early.map((fragment, index) => {
     const rest = ideasSample.late[index];

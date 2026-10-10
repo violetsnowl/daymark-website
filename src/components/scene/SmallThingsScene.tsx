@@ -89,17 +89,21 @@ export function SmallThingsScene() {
   const { progress } = useSceneProgress(sectionRef, {
     /* The choreography must play where the reader can see it (W3 §10.5–10.7):
        fragments are already visible when the section becomes primary, the
-       convergence is watched, and the designed fade-out of 老师说看第五章 is
-       witnessed mid-screen. The window therefore covers the section's whole
-       pass through the viewport — progress 0 as the section top is 25vh up
-       from the fold (老师说看第五章 rising in at the bottom edge, not fading),
-       progress 1 as it is 75vh above the fold — 1.0 viewport of travel, which
-       is W3 §11's recommended duration. An earlier mapping (0.92 → 0.28)
-       completed the entire animation while the section was still entering:
-       the two exiting fragments' fades ran off-screen and they were never
-       readable — measured: 0px of visible window. */
-    startAt: 0.25,
-    endAt: -0.75,
+       convergence is watched, and the designed fade-outs are witnessed
+       mid-screen. The window is centred on the moment the section settles —
+       progress 0 as its top is 50vh up from the fold, progress 1 as it is 50vh
+       above the fold (1.0 viewport of travel, W3 §11's recommended duration):
+       the drift begins while the scene is still arriving, the fades play in
+       the settled view, and everything freezes while over half the section is
+       still on screen — nothing keeps moving into the exit.
+       (0.92 → 0.28, the original mapping, completed the whole animation while
+       the section was still entering: the exits ran off-screen — measured 0px
+       of visible window. 0.25 → −0.75 fixed that but still read "too late" on
+       a real screen: the drift started only after the scene had almost fully
+       arrived, and its tail drifted past the top of the viewport — user
+       report, 2026-10-10.) */
+    startAt: 0.5,
+    endAt: -0.5,
     disabled: reducedMotion,
   });
 
