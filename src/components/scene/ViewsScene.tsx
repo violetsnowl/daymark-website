@@ -30,9 +30,17 @@ const VIEW_ORDER: PlanView[] = ["overview", "courses", "calendar"];
 
 /** Scroll mapping (W4 §4.5's bands, expressed against the stage-anchored
  *  window): a projection becomes current at the middle of its fade —
- *  0.35 for courses, 0.78 for calendar. */
-const COURSE_FROM = 0.35;
-const CALENDAR_FROM = 0.78;
+ *  0.24 for courses, 0.62 for calendar.
+ *
+ *  The midpoints matter as much as the fades: on the pinned stretch they put
+ *  the first switch ~190px after the pin and the second ~700px in, so the
+ *  overview gives way almost as soon as the panel has arrived, and the course
+ *  and the calendar split the rest of the pinned travel between them (roughly
+ *  520px each at 1440×900). An earlier tuning put them at 0.35 / 0.78 — the
+ *  mechanics were right but the distribution read as "overview for the first
+ *  half, calendar squeezed into the last 300px before the release". */
+const COURSE_FROM = 0.24;
+const CALENDAR_FROM = 0.62;
 
 function viewForProgress(progress: number, pinned: boolean): PlanView {
   if (!pinned || progress < COURSE_FROM) return "overview";
@@ -97,12 +105,12 @@ export function ViewsScene() {
   });
 
   /* The cross-fade itself is scroll-linked (W4 §4.5 asks for scroll-linked
-   * values over several timed triggers): the overview fades out over 0.20→0.50
-   * and the calendar fades in over 0.66→0.90; everything between is derived
+   * values over several timed triggers): the overview fades out over 0.14→0.34
+   * and the calendar fades in over 0.50→0.74; everything between is derived
    * from those two, so no beat of the pinned stretch is inert. `arrivesAt` is
    * where each fade completes, `span` is how much of the window it takes. */
-  const overviewOut = stepReveal(progress, 0.5, { span: 0.3 });
-  const calendarIn = stepReveal(progress, 0.9, { span: 0.24 });
+  const overviewOut = stepReveal(progress, 0.34, { span: 0.2 });
+  const calendarIn = stepReveal(progress, 0.74, { span: 0.24 });
   const viewOpacity: Record<PlanView, number> = {
     overview: 1 - overviewOut.eased,
     courses: overviewOut.eased - calendarIn.eased,
