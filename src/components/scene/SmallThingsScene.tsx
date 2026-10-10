@@ -31,8 +31,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     top: "4%",
     left: "9%",
     align: "left",
-    fromX: 34,
-    fromY: -12,
+    fromX: 68,
+    fromY: -24,
     size: 2,
     opacity: 1,
   },
@@ -40,8 +40,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     top: "17%",
     left: "68%",
     align: "left",
-    fromX: -30,
-    fromY: -9,
+    fromX: -60,
+    fromY: -18,
     size: 0,
     opacity: 0.78,
   },
@@ -49,8 +49,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     top: "73%",
     left: "13%",
     align: "left",
-    fromX: -28,
-    fromY: 12,
+    fromX: -56,
+    fromY: 24,
     size: 1,
     opacity: 0.92,
     exitsAt: [0.7, 0.88],
@@ -59,8 +59,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     top: "82%",
     left: "55%",
     align: "left",
-    fromX: 30,
-    fromY: 10,
+    fromX: 60,
+    fromY: 20,
     size: 2,
     opacity: 1,
   },
@@ -72,8 +72,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     top: "43%",
     left: "11%",
     align: "left",
-    fromX: 20,
-    fromY: -6,
+    fromX: 40,
+    fromY: -12,
     size: 1,
     opacity: 0.34,
     exitsAt: [0.34, 0.62],
@@ -104,7 +104,12 @@ export function SmallThingsScene() {
   });
 
   /* Fragments move toward the shared axis purely through custom properties:
-     one scroll value, no React re-render per frame (W4 §18.1). */
+     one scroll value, no React re-render per frame (W4 §18.1).
+     Amplitude is a user decision (2026-10-10): the first shipping values read
+     as motionless on a real screen — the drift is now ~60–68px per fragment
+     plus a 4% settle in scale, still one calm monotonic convergence (W3
+     §10.6's "6–14px" was a prototype hint; the user 裁决 overrides it, same
+     as Scene 04 covered W4 §4.5's suggested pacing). */
   useEffect(() => {
     const field = fieldRef.current;
     if (!field) return;
@@ -118,7 +123,7 @@ export function SmallThingsScene() {
       const y = reducedMotion ? 0 : layout.fromY * (1 - eased);
       node.style.setProperty("--fx", `${x.toFixed(2)}px`);
       node.style.setProperty("--fy", `${y.toFixed(2)}px`);
-      node.style.setProperty("--fs", reducedMotion ? "1" : (0.976 + eased * 0.024).toFixed(4));
+      node.style.setProperty("--fs", reducedMotion ? "1" : (0.96 + eased * 0.04).toFixed(4));
 
       if (layout.exitsAt && !reducedMotion) {
         const [from, to] = layout.exitsAt;
@@ -183,8 +188,8 @@ export function SmallThingsScene() {
               style={
                 {
                   "--base-opacity": 0.34,
-                  "--fx": "20px",
-                  "--fy": "-6px",
+                  "--fx": "40px",
+                  "--fy": "-12px",
                 } as CSSProperties
               }
             >

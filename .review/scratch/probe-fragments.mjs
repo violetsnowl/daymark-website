@@ -152,6 +152,9 @@ try {
             top: Math.round(rect.top),
             bottom: Math.round(rect.bottom),
             alpha: +(ex * base).toFixed(3),
+            fx: +parseFloat(node.style.getPropertyValue("--fx") || "0").toFixed(1),
+            fy: +parseFloat(node.style.getPropertyValue("--fy") || "0").toFixed(1),
+            fs: +parseFloat(node.style.getPropertyValue("--fs") || "1").toFixed(3),
           };
         }),
       };
@@ -185,6 +188,17 @@ try {
       `  [${index}] ${first.fragments[index].text.padEnd(9)} y=${first.y} … ${last.y}  ` +
         `(${last.y - first.y}px; progress ${first.progress.toFixed(2)} → ${last.progress.toFixed(2)}; ` +
         `sectionTop ${first.sectionTop} … ${last.sectionTop})`,
+    );
+  }
+  console.log("\nconvergence drift (full sweep; x/y in px, scale — range from start to rest):");
+  for (let index = 0; index < rows[0].fragments.length; index += 1) {
+    const values = rows.map((row) => row.fragments[index]);
+    const span = (key) => {
+      const a = values.map((v) => v[key]);
+      return `${Math.min(...a)} ↔ ${Math.max(...a)}`;
+    };
+    console.log(
+      `  [${index}] ${values[0].text.padEnd(9)} x ${span("fx")}  y ${span("fy")}  scale ${span("fs")}`,
     );
   }
   client.close();

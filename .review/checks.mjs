@@ -405,6 +405,64 @@ try {
   check("reduced motion removes fragment drift", reduced.fragmentsResting);
   check("reduced motion keeps the headline fully visible", reduced.heroTitleOpacity === "1", reduced.heroTitleOpacity);
 
+  /* ---------- 7. Scene 01 — the scatter actually moves ---------- */
+  /* 用户反馈（2026-10-10）：第一版位移太轻，"甚至不仔细看看不出在动"；更早还
+     出现过"两条片段从未出现在屏幕上"。这一节直接对着两次反馈量两件事：
+     ①进入场景主体时五条片段全部在屏（含幽灵问题）；②每条片段在整段旅程中真实
+     移动的净距离 ≥ 36px、缩放落定 ≥ 3%——位移再被改"轻"会在这里立刻红。 */
+  await goTo(client, "/", 1440, 900);
+  await delay(600);
+  const ideasSample = await evaluate(
+    client,
+    `(async () => {
+      const section = document.querySelector('.scene-small-things');
+      const docTop = section.getBoundingClientRect().top + window.scrollY;
+      const vh = window.innerHeight;
+      const pause = () => new Promise((resolve) => setTimeout(resolve, 250));
+      const read = () => Array.from(document.querySelectorAll('.scene-small-things .fragment')).map((node) => {
+        const rect = node.getBoundingClientRect();
+        const ex = Number(node.style.getPropertyValue('--ex') || '1');
+        const base = Number(node.style.getPropertyValue('--base-opacity') || '1');
+        return {
+          text: node.textContent ?? '',
+          visible: rect.top < vh && rect.bottom > 0 && ex * base > 0.1,
+          fx: parseFloat(node.style.getPropertyValue('--fx') || '0'),
+          fy: parseFloat(node.style.getPropertyValue('--fy') || '0'),
+          fs: parseFloat(node.style.getPropertyValue('--fs') || '1'),
+        };
+      });
+      /* progress 0.15 / 0.95 of the scene window (startAt 0.25, one viewport
+         of travel): the settled-but-still-scattered view, then the rest state. */
+      window.scrollTo({ top: docTop - 0.10 * vh, behavior: 'instant' });
+      await pause();
+      const early = read();
+      window.scrollTo({ top: docTop + 0.70 * vh, behavior: 'instant' });
+      await pause();
+      const late = read();
+      return { early, late };
+    })()`,
+  );
+  check(
+    "every fragment is on screen when the section becomes primary",
+    ideasSample.early.length === 5 && ideasSample.early.every((fragment) => fragment.visible),
+    ideasSample.early.map((fragment) => `${fragment.text.slice(0, 6)}:${fragment.visible ? "on" : "off"}`).join(" "),
+  );
+  const fragmentTravels = ideasSample.early.map((fragment, index) => {
+    const rest = ideasSample.late[index];
+    return {
+      text: fragment.text,
+      distance: Math.hypot(fragment.fx - rest.fx, fragment.fy - rest.fy),
+      scale: rest.fs - fragment.fs,
+    };
+  });
+  check(
+    "the scatter visibly converges (each fragment travels ≥ 36px, scale settles ≥ 3%)",
+    fragmentTravels.every((entry) => entry.distance >= 36 && entry.scale >= 0.03),
+    fragmentTravels
+      .map((entry) => `${entry.text.slice(0, 5)} ${Math.round(entry.distance)}px/${entry.scale.toFixed(3)}`)
+      .join(" "),
+  );
+
   /* ---------- 8. Scene 03 — Context (W4 §3) ---------- */
   await goTo(client, "/", 1440, 900);
   await scrollToSection(client, "#context");

@@ -276,6 +276,10 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 
 **工具变化**：新增 `probe-fragments.mjs`（片段可见性逐格诊断）；`sweep-page.mjs` 的 `01b-ideas` 机位改为"五条全在"状态（screenTop 187），新增 `01c-ideas-resolve`（screenTop −495）。
 
+**幅度调整（用户后续反馈："动画太轻了，甚至不仔细看看不出在动"）**：初版收敛位移仅 30–34px、缩放 2.4%，摊在 1 个视口的滚动量上几乎不可感知。位移整体 ×2（40–68px）、缩放落定放大到 4%（0.96→1.00）；窗口（0.25/−0.75）、smoothstep 时序、两条消散位置全部不变。实测（探针同轮扩展出"收敛漂移"表）：每条净位移 **39–68px**、缩放落定 **0.037**；五条可见窗口不变（[2] 680px、[4] 640px）。W3 §10.5 的"6–14px"原型建议被用户裁决覆盖（同 Scene 04 覆盖 W4 §4.5 的节奏表）。
+
+**新增防线（`checks.mjs` 90 → 92，"7. Scene 01" 分区此前从未存在）**：①`every fragment is on screen when the section becomes primary`（进度 0.15 时五条全在屏）；②`the scatter visibly converges (each fragment travels ≥ 36px, scale settles ≥ 3%)`（实测 67/58/57/59/39px + 0.037）。把两次用户反馈——"看不到"与"动太轻"——都变成了红警。
+
 ---
 
 ## 1. 怎么跑起来
