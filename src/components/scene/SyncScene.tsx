@@ -25,18 +25,27 @@ import { SceneHeader } from "./SceneHeader.tsx";
  * Scroll mapping from W4 §7.4, expressed as the progress at which each stage
  * completes:
  *
- *   0.00 laptop item appears      0.45 subtle sync state
- *   0.25 phone still unchanged    0.65 phone item enters
- *                                 0.85 both surfaces equalize
- *                                 1.00 connection disappears
+ *   0.00 laptop item appears      0.38 cord fully drawn
+ *   0.30 cord starts drawing      0.46 phone item enters
+ *   0.46 phone item enters        0.62 both surfaces equalize
+ *   0.62 state reads 已同步       0.64 connection disappears
+ *
+ * The ending beats are deliberately front-loaded (user ruling, 2026-10-10):
+ * with the W4-suggested 0.85–0.90 placement the label flipped to 已同步 while
+ * the state line was already above the viewport top — the reader's last sight
+ * of it was 同步中, and the scene looked unfinished while Scene 08 arrived.
+ * The story now completes while the surfaces are still fully on screen, and
+ * (measured) the flip lands before any content of Scene 08 can enter the
+ * viewport at every reference size. The scene then rests finished through the
+ * remainder of its travel.
  */
-const PHONE_ENTER = 0.65;
-const PHONE_SETTLED = 0.85;
+const PHONE_ENTER = 0.46;
+const PHONE_SETTLED = 0.62;
 /** The line is present only while the two sides disagree (W4 §7.3, §7.4). */
-const CORD_FROM = 0.45;
-const CORD_FULL = 0.55;
-const CORD_FADE_FROM = 0.8;
-const CORD_GONE = 0.9;
+const CORD_FROM = 0.3;
+const CORD_FULL = 0.38;
+const CORD_FADE_FROM = 0.5;
+const CORD_GONE = 0.64;
 
 function track(progress: number, from: number, to: number): number {
   if (to <= from) return progress >= to ? 1 : 0;

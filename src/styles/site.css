@@ -1449,6 +1449,14 @@
     grid-column: 1 / -1;
     margin-bottom: clamp(24px, 3.6vh, 44px);
   }
+  /* Scene 04's closing line is an epilogue, not an entr'acte (user ruling):
+     it must not start rising into view while the calendar is still the current
+     projection — it appears only after the calendar has finished and the panel
+     has released, so the scene reads as "three views told, then the line".
+     The plain rhythm stays in the stacked sequence below 1024px. */
+  .scene-views[data-pinned="true"] .scene-closing {
+    margin-top: clamp(200px, 30vh, 340px);
+  }
 }
 
 .view-switcher {
