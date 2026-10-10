@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { useCopy } from "../../app/LocaleProvider.tsx";
 import { showcase, showcaseStrings } from "../../content/demo.ts";
 import { useReducedMotion, useSceneProgress, stepReveal } from "../../motion/index.ts";
@@ -28,19 +28,22 @@ import { SceneHeader } from "./SceneHeader.tsx";
 
 const VIEW_ORDER: PlanView[] = ["overview", "courses", "calendar"];
 
-/** Scroll mapping (W4 §4.5's bands, expressed against the stage-anchored
- *  window): a projection becomes current at the middle of its fade —
- *  0.24 for courses, 0.62 for calendar.
+/** The pinned travel reads as **three equal thirds** — overview, courses,
+ *  calendar — with one cross-fade centred on each boundary (its span is split
+ *  half into the ending third and half into the starting third, so each
+ *  projection owns exactly 1/3 of the travel). At 1440×900 the travel is
+ *  1224px: each projection owns 408px, each fade spans ~245px.
  *
- *  The midpoints matter as much as the fades: on the pinned stretch they put
- *  the first switch ~190px after the pin and the second ~700px in, so the
- *  overview gives way almost as soon as the panel has arrived, and the course
- *  and the calendar split the rest of the pinned travel between them (roughly
- *  520px each at 1440×900). An earlier tuning put them at 0.35 / 0.78 — the
- *  mechanics were right but the distribution read as "overview for the first
- *  half, calendar squeezed into the last 300px before the release". */
-const COURSE_FROM = 0.24;
-const CALENDAR_FROM = 0.62;
+ *  This is a user ruling (2026-10-10): "arrived" means the panel is
+ *  **vertically centred**, and from that moment the three projections divide
+ *  the scroll equally. It replaces an earlier distribution that read as
+ *  "overview for the first half, calendar squeezed into the last 300px" —
+ *  and the W4 §4.5 suggested band table — while keeping §4.5's actual
+ *  requirement: scroll-linked values, not trigger stamps. */
+const THIRD = 1 / 3;
+const FADE_SPAN = 0.2;
+const COURSE_FROM = THIRD;
+const CALENDAR_FROM = 2 * THIRD;
 
 function viewForProgress(progress: number, pinned: boolean): PlanView {
   if (!pinned || progress < COURSE_FROM) return "overview";
@@ -53,6 +56,7 @@ export function ViewsScene() {
   const demo = showcaseStrings[copy.locale];
   const reducedMotion = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
+  const stickyRef = useRef<HTMLDivElement>(null);
   const [pinned, setPinned] = useState(false);
 
   /* The pinned stage is a desktop affordance. Below 1024px and whenever motion
@@ -67,12 +71,49 @@ export function ViewsScene() {
     return () => query.removeEventListener("change", update);
   }, [reducedMotion]);
 
+  /* The pin position and the scroll window come from one measurement pass:
+   * the panel parks when it is vertically centred — `--views-pin-top` =
+   * (viewport − panel height) / 2, read by `site.css` — and the window is the
+   * pinned travel itself: it opens at that same offset and spans stage height
+   * − panel height (1800 − 576 = 1224px at 1440×900). Re-measured on resize
+   * and whenever either box changes, so the two can never drift apart.
+   *
+   * The stage owns the ref: the scroll window is measured against it. */
+  const [windowPx, setWindowPx] = useState({ startOffset: 600, travel: 600 });
+
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    const sticky = stickyRef.current;
+    if (!stage || !sticky) return;
+    const measure = () => {
+      const viewport = window.innerHeight || 1;
+      const height = sticky.getBoundingClientRect().height;
+      const pinTop = Math.max(0, (viewport - height) / 2);
+      const travel = Math.max(1, stage.getBoundingClientRect().height - height);
+      sticky.style.setProperty("--views-pin-top", `${pinTop}px`);
+      setWindowPx((current) =>
+        Math.abs(current.startOffset - pinTop) < 0.5 && Math.abs(current.travel - travel) < 0.5
+          ? current
+          : { startOffset: pinTop, travel },
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(stage);
+    observer.observe(sticky);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [pinned]);
+
   /* The driver is measured against the **stage**, not the section: the stage is
-   * the element whose travel the reader is inside — it pins when its top passes
-   * under the nav and releases when its travel runs out. Measured against the
-   * section, the same fractions pick up the header height above the stage, so
-   * the pin, the first switch and the release drift apart whenever the header
-   * changes.
+   * the element whose travel the reader is inside. The window *is* the pinned
+   * travel: progress 0 is the moment the panel arrives (vertically centred),
+   * progress 1 the moment it releases — both ends and the pin position are
+   * computed from the same measured geometry, so they cannot drift apart when
+   * the viewport, the nav or the panel's content height changes.
    *
    * Four mistakes shaped this scene, all reported from real use:
    *   1. A window longer than the hold left the calendar unreachable on a page
@@ -89,28 +130,20 @@ export function ViewsScene() {
    *      arrived, and once pinned the reader scrolled through hundreds of pixels
    *      in which the picture did not respond. The scene read as a wait for two
    *      remote changes, not as a response to the scrolling.
-   *
-   * `startAt: 0.3` puts progress 0 just above the pin (~140px of rise left): the
-   * reader arrives on the overview, the panel finishes coming up, and the story
-   * only starts once it has. `endAt: −1.22` puts progress 1 exactly at the
-   * release, so the calendar settles into the release rather than into a dead
-   * stretch. Measured at 1440×900 (stage 1800px, sticky 576px, pin offset
-   * 128px): pin at progress ≈0.10, release at ≈1.00. Change the stage height in
-   * `site.css` and this has to change with it.
    */
   const { progress } = useSceneProgress(stageRef, {
-    startAt: 0.3,
-    endAt: -1.22,
+    startOffset: windowPx.startOffset,
+    travel: windowPx.travel,
     disabled: !pinned,
   });
 
-  /* The cross-fade itself is scroll-linked (W4 §4.5 asks for scroll-linked
-   * values over several timed triggers): the overview fades out over 0.14→0.34
-   * and the calendar fades in over 0.50→0.74; everything between is derived
-   * from those two, so no beat of the pinned stretch is inert. `arrivesAt` is
-   * where each fade completes, `span` is how much of the window it takes. */
-  const overviewOut = stepReveal(progress, 0.34, { span: 0.2 });
-  const calendarIn = stepReveal(progress, 0.74, { span: 0.24 });
+  /* The cross-fades are scroll-linked (W4 §4.5), one centred on each third
+   * boundary: the overview fades out over 0.233→0.433 and the calendar fades
+   * in over 0.567→0.767; everything between is derived from those two, so no
+   * beat of the pinned stretch is inert. `arrivesAt` is where each fade
+   * completes, `span` how much of the window it takes. */
+  const overviewOut = stepReveal(progress, THIRD + FADE_SPAN / 2, { span: FADE_SPAN });
+  const calendarIn = stepReveal(progress, 2 * THIRD + FADE_SPAN / 2, { span: FADE_SPAN });
   const viewOpacity: Record<PlanView, number> = {
     overview: 1 - overviewOut.eased,
     courses: overviewOut.eased - calendarIn.eased,
@@ -157,7 +190,7 @@ export function ViewsScene() {
           /* The stage owns the ref: the scroll window is measured against it
              (see above), and it is the element that pins and releases. */
           <div className="views-stage" ref={stageRef}>
-            <div className="views-sticky">
+            <div className="views-sticky" ref={stickyRef}>
               <ViewSwitcher
                 labels={copy.views.views}
                 activeIndex={activeIndex}

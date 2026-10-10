@@ -1508,6 +1508,7 @@ try {
          first, the story follows it, and the story is over by the release". */
       let pinView = null;
       let releaseProgress = null;
+      let pinCentreDelta = null;
       for (let offset = 0; offset <= seconds; offset += 20) {
         /* Anchored to the stage's *live* position at every step, and scrolled
            with 'instant'. The stylesheet gives scrolling a smooth behaviour
@@ -1531,6 +1532,10 @@ try {
         const stickyTop = sticky.getBoundingClientRect().top;
         if (pinView === null && stickyTop <= pinTarget + 2) {
           pinView = section.dataset.view;
+          /* Where the panel actually parks, against true vertical centre. */
+          pinCentreDelta = Math.round(
+            stickyTop - (window.innerHeight - sticky.getBoundingClientRect().height) / 2,
+          );
         } else if (pinView !== null && releaseProgress === null && stickyTop < pinTarget - 2) {
           releaseProgress = clamped;
         }
@@ -1541,7 +1546,7 @@ try {
           ? { low: +Math.min(...values).toFixed(3), high: +Math.max(...values).toFixed(3) }
           : null;
       }
-      return { band, progressAtStageTop, pinView, releaseProgress };
+      return { band, progressAtStageTop, pinView, releaseProgress, pinCentreDelta };
     })()`,
   );
   const bandSummary = Object.entries(reachability.band).map(([view, values]) =>
@@ -1554,13 +1559,20 @@ try {
     `progressAtStageTop=${reachability.progressAtStageTop} | ${bandSummary.join(" | ")}`,
   );
   check(
-    "no projection owns more than 2.5× the progress of another",
+    "the three projections split the pinned travel into roughly equal thirds",
     (() => {
       const widths = Object.values(reachability.band).filter(Boolean).map((values) => values.high - values.low);
       if (widths.length !== 3) return false;
-      return Math.max(...widths) <= Math.min(...widths) * 2.5;
+      return Math.max(...widths) <= Math.min(...widths) * 1.3;
     })(),
     bandSummary.join(" | "),
+  );
+  /* "Arrived" now means *vertically centred* (user ruling, 2026-10-10): the
+     panel must park at (viewport − panel height)/2, not tucked under the nav. */
+  check(
+    "the panel parks vertically centred when it arrives",
+    typeof reachability.pinCentreDelta === "number" && Math.abs(reachability.pinCentreDelta) <= 2,
+    `offset from centre=${reachability.pinCentreDelta}px`,
   );
   /* The two properties the Scene 04 pacing rework exists to guarantee. The pin
      must arrive *before* the story does — a reader who has just watched the

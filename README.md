@@ -124,7 +124,7 @@ src/
 `.review/` 下是本地验证工具（不属于站点产物，也不参与构建）：
 
 ```bash
-node .review/checks.mjs        http://127.0.0.1:4173/   # 88 项浏览器行为断言（主入口）
+node .review/checks.mjs        http://127.0.0.1:4173/   # 89 项浏览器行为断言（主入口）
 node .review/probe-page-end.mjs http://127.0.0.1:4173/  # 六视口的场景边界与"离开后是否还变"
 node .review/measure.mjs       http://127.0.0.1:4173/   # 参考视口 DOM 几何测量
 node .review/shots.mjs         http://127.0.0.1:4173/   # 参考视口截图（按状态定位）

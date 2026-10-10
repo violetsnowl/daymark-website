@@ -207,9 +207,9 @@ try {
     { name: "01-hero", aim: { sel: ".hero", screenTop: 0 } },
     { name: "02-capture", aim: { sel: "#capture", screenTop: -120 }, settle: 3200 },
     { name: "03-context", aim: { sel: ".context-stage", screenTop: 0 }, settle: 900 },
-    { name: "04-views-pinned", aim: { progress: 0.10 }, settle: 700 },
-    { name: "04b-views-fade1", aim: { progress: 0.24 }, settle: 700 },
-    { name: "04c-views-calendar", aim: { progress: 0.62 }, settle: 700 },
+    { name: "04-views-pinned", aim: { progress: 0.02 }, settle: 700 },
+    { name: "04b-views-fade1", aim: { progress: 0.3333 }, settle: 700 },
+    { name: "04c-views-fade2", aim: { progress: 0.6667 }, settle: 700 },
     { name: "04d-views-settled", aim: { progress: 0.90 }, settle: 700 },
     { name: "05-reminder", aim: { sel: ".reminder-stage", screenTop: 100 }, settle: 1200 },
     { name: "06-ai", aim: { sel: ".scene-ai", screenTop: 80 }, settle: 1600 },
@@ -238,7 +238,12 @@ try {
             const rect = stage.getBoundingClientRect();
             const scrollY = window.scrollY;
             const docTop = rect.top + scrollY;
-            const want = Math.max(0, docTop - (0.3 * vh - 1.52 * vh * target));
+            /* The scene publishes its live window as px:<startOffset>+<travel>
+               (stage-anchored, measured); solve stageTop = startOffset − travel×target. */
+            const m = /^px:([0-9.]+)\\+([0-9.]+)$/.exec(stage.dataset.sceneWindow ?? '');
+            const startOffset = m ? Number(m[1]) : 0.18 * vh;
+            const travel = m ? Number(m[2]) : 1.36 * vh;
+            const want = Math.max(0, docTop - (startOffset - travel * target));
             if (Math.abs(want - scrollY) < 6) break;
             window.scrollTo({ top: want, behavior: 'instant' });
             await wait(320);
