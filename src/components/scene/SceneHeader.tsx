@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 /**
  * The editorial header shared by every scene from 03 onward (W4 §3–§9).
  *
@@ -15,7 +17,9 @@ export function SceneHeader({
   /** id for the heading, so the section can be labelled by it. */
   id: string;
   index?: string;
-  title: string;
+  /** A node, not just a string: Scene 03 wraps part of its statement in a
+      nowrap span so the line never breaks inside 「“做什么”。」(review P2-1). */
+  title: ReactNode;
   description?: string;
   className?: string;
 }) {

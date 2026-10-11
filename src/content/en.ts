@@ -30,10 +30,11 @@ export const en = {
     brandCn: "",
     brandEn: demo.brandEn,
     homeLabel: "Daymark home",
+    /* Page order, mirroring the Chinese nav (2026-10-11 review P2-3). */
     anchors: [
       { id: "ideas", label: "Ideas", href: "#ideas" },
-      { id: "day", label: "A day", href: "#day" },
       { id: "capture", label: "How it works", href: "#capture" },
+      { id: "day", label: "A day", href: "#day" },
       { id: "about", label: "About", href: "#about" },
     ],
     languageLabel: "Language",

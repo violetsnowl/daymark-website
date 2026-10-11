@@ -116,6 +116,21 @@ export function ContextScene() {
     return copy.context.reminderValue;
   };
 
+  /* The statement must not split inside 「“做什么”。」(review P2-1): the
+     segment from the opening quote onward wraps as one unit — at 1440 the
+     line previously broke after 「做什」, leaving a three-glyph widow. */
+  const title = copy.context.title;
+  const titleBreak = title.indexOf("\u201C");
+  const titleNode =
+    titleBreak > 0 ? (
+      <>
+        {title.slice(0, titleBreak)}
+        <span className="nowrap">{title.slice(titleBreak)}</span>
+      </>
+    ) : (
+      title
+    );
+
   return (
     <section
       id="context"
@@ -128,7 +143,7 @@ export function ContextScene() {
         <SceneHeader
           id="context-title"
           index={copy.context.index}
-          title={copy.context.title}
+          title={titleNode}
           description={copy.context.description}
         />
 

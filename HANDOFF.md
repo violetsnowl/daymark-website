@@ -3,7 +3,7 @@
 > 面向上一位之后的**接手者**（人或其他 agent / 模型）。
 > 这份文档负责"现在在哪、怎么接着干、别踩什么"。**实现细节与逐轮修复记录在 [`REVIEW.md`](./REVIEW.md)**，两者不重复：这里给判断，那里给证据。
 >
-> 最后更新：2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G）。仓库已初始化（分支 `main`），**无远端、未推送** —— 见 §7。
+> 最后更新：2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G；同日晚：设计审查修复轮——对比度系统修复（达 AA）/ Scene 03 标题断行 / 导航按页序，见 §0H）。仓库已初始化（分支 `main`），**无远端、未推送** —— 见 §7。
 
 ---
 
@@ -285,7 +285,7 @@ src/content/{cn,en}.ts                    中文母稿 / 英文独立文案
 src/content/demo.ts                       确定性演示数据（主 Item 的唯一定义处）
 src/content/types.ts                      SiteCopy 契约
 src/styles/site.css                       各场景布局（含"成对参数"的交叉注释）
-.review/checks.mjs                        90 项断言，改完必跑
+.review/checks.mjs                        92 项断言，改完必跑
 .review/probe-views-pacing.mjs            Scene 04 钉住节奏（改 Scene 04 窗口后必跑）
 .review/scratch/probe-sync-exit.mjs       Scene 07 退出状态（改 Scene 07 拍点后必跑）
 .review/probe-page-end.mjs                六视口场景边界，改最后一节上方内容后必跑

@@ -43,7 +43,10 @@ const LAYOUT: (FragmentLayout | null)[] = [
     fromX: -60,
     fromY: -18,
     size: 0,
-    opacity: 0.78,
+    /* Was 0.78 — under the contrast review (P1-1) this whisper read below any
+       usable level; 0.97 keeps it the softer of the two ink notes while
+       measuring ≈4.5:1 on the canvas. */
+    opacity: 0.97,
   },
   {
     top: "73%",
@@ -191,7 +194,10 @@ export function SmallThingsScene() {
               data-fragment={copy.smallThings.fragments.length + index}
               style={
                 {
-                  "--base-opacity": 0.34,
+                  /* Was 0.34 — the question read as an accident (1.3:1).
+                     Raised to ≈2.9:1 so it is perceivable while still the
+                     faintest fragment in the scatter (review P1-1). */
+                  "--base-opacity": 0.72,
                   "--fx": "40px",
                   "--fy": "-12px",
                 } as CSSProperties

@@ -12,8 +12,12 @@
   --surface-muted: #ece9e1;
   --ink: #252b28;
   --ink-soft: #4f5a55;
-  --muted: #727b76;
-  --faint: #969d98;
+  /* Accessibility revision (2026-10-11 review, P1-1): --muted is the quiet
+     text level and now holds WCAG AA on every surface it appears on
+     (canvas 5.0:1, muted surfaces 4.7:1, raised 5.6:1). --faint is reserved
+     for decorative marks only — never for text that must be read. */
+  --muted: #5f6963;
+  --faint: #838b86;
   --line: #d9d7cf;
   --line-strong: #c7c8bf;
   --accent: #31564a;

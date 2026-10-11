@@ -29,11 +29,12 @@ export const cn = {
     brandEn: "DAYMARK",
     homeLabel: "拾序 Daymark 首页",
     /* W4 §11.1: 「怎么工作」从工作流的起点进入 —— Capture → Context → Views。
-       直接跳到最核心但更后置的 Views 会让读者从中间开始。 */
+       直接跳到最核心但更后置的 Views 会让读者从中间开始。
+       顺序按页面顺序排列（2026-10-11 审查 P2-3）：理念 → 怎么工作 → 一天 → 关于。 */
     anchors: [
       { id: "ideas", label: "理念", href: "#ideas" },
-      { id: "day", label: "一天", href: "#day" },
       { id: "capture", label: "怎么工作", href: "#capture" },
+      { id: "day", label: "一天", href: "#day" },
       { id: "about", label: "关于", href: "#about" },
     ],
     languageLabel: "语言",
