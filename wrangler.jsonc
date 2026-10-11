@@ -1,0 +1,16 @@
+{
+  /* Cloudflare Workers static assets deployment (new "import a Git
+     repository" flow; the dashboard runs `npm run build` then
+     `npx wrangler deploy`, and this file tells wrangler what to publish).
+     `not_found_handling: single-page-application` mirrors the SPA fallback
+     that public/_redirects declares for Pages-style hosts: unknown paths
+     reach index.html and the client router answers (/en/ stays canonical). */
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "daymark-website",
+  // Set this to today's date
+  "compatibility_date": "2026-10-11",
+  "assets": {
+    "directory": "./dist/",
+    "not_found_handling": "single-page-application"
+  }
+}
