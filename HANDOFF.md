@@ -3,7 +3,7 @@
 > 面向上一位之后的**接手者**（人或其他 agent / 模型）。
 > 这份文档负责"现在在哪、怎么接着干、别踩什么"。**实现细节与逐轮修复记录在 [`REVIEW.md`](./REVIEW.md)**，两者不重复：这里给判断，那里给证据。
 >
-> 最后更新：2026-10-10 续（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G）。仓库已初始化（分支 `main`），**无远端、未推送** —— 见 §7。
+> 最后更新：2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G）。仓库已初始化（分支 `main`），**无远端、未推送** —— 见 §7。
 
 ---
 
@@ -105,7 +105,7 @@
 
 ### 4.4 Scene 04 的窗口锚定、居中钉住与滚动驱动淡入（四轮重构后确立）
 
-钉住场景的窗口**锚在舞台元素（`.views-stage`）上，不锚在 section 上**：舞台才是"钉住→释放"的载体，而 section 顶边到舞台顶边之间隔着页头（实测 441px），锚在 section 会让钉住、第一次切换、释放三个节拍随页头高度漂移。当前实现：**整个 Scene 04（含章节头）作为一个对象**，钉住位 = max((视口 − 对象高)/2, 导航高+16)（`--views-pin-top`）；舞台高度 = 实测对象高 + **固定行程 300px**（`--views-stage-height`）；窗口 = 该行程本身（`startOffset` = 钉住位、`travel` = 300px）。三者同源测量，见 REVIEW §0。
+钉住场景的窗口**锚在舞台元素（`.views-stage`）上，不锚在 section 上**：舞台才是"钉住→释放"的载体，而 section 顶边到舞台顶边之间隔着页头（实测 441px），锚在 section 会让钉住、第一次切换、释放三个节拍随页头高度漂移。当前实现：**整个 Scene 04（含章节头）作为一个对象**，钉住位 = max((视口 − 对象高)/2, 导航高+16)（`--views-pin-top`）；舞台高度 = 实测对象高 + **固定行程 400px**（`--views-stage-height`）；窗口 = 该行程本身（`startOffset` = 钉住位、`travel` = 400px；行程按 **1:2:1 = 100/200/100px** 分给三块投影）。三者同源测量，见 REVIEW §0。
 
 三块投影的交叉淡入**由滚动进度驱动**（W4 §4.5 的 band 映射），不是「阈值 + 定时过渡」：钉住段里每一次滚动都应有可见响应，否则读起来是"硬等"。不要改回定时实现；实测与断言见 [`REVIEW.md`](./REVIEW.md) §0D。
 
@@ -199,7 +199,7 @@ npm test             # 20 项单元测试（解析器 + 主 Item 连续性）
 浏览器行为验证（需先起 `preview` 或 `dev`）：
 
 ```bash
-node .review/checks.mjs        http://127.0.0.1:4173/   # 86 项断言，主入口
+node .review/checks.mjs        http://127.0.0.1:4173/   # 92 项断言，主入口
 node .review/probe-page-end.mjs http://127.0.0.1:4173/  # 六视口场景边界
 node .review/shots.mjs         http://127.0.0.1:4173/   # 按状态定位的参考截图
 node .review/perf.mjs          http://127.0.0.1:4173/   # LCP / CLS / 传输量
@@ -207,9 +207,11 @@ node .review/measure.mjs       http://127.0.0.1:4173/   # 参考视口 DOM 几�
 node .review/probe-bands.mjs   http://127.0.0.1:4173/ 1440 900   # 场景滚动窗口逐帧
 node .review/probe-views-pacing.mjs http://127.0.0.1:4173/   # Scene 04 节奏（钉住/淡入/释放）
 node .review/probe-stage-d.mjs http://127.0.0.1:4173/   # Reminder / AI / Sync 窗口
+node .review/scratch/probe-fragments.mjs http://127.0.0.1:4173/   # Scene 01 片段可见窗口 + 收敛漂移
+node .review/scratch/probe-sync-exit.mjs http://127.0.0.1:4173/   # Scene 07 退出态逐格（已同步先于 08）
 ```
 
-`.review/scratch/` 是本轮排查用的一次性脚本，可随时删除。`chrome-profile-*` 是 headless 配置目录，`.gitignore` 已覆盖。
+`.review/scratch/` 里既有一次性排查脚本，也有被文档引用的证据生成器（`sweep-page.mjs`、`probe-sync-exit.mjs`、`probe-fragments.mjs` 等，已随代码提交）——被引用者不要删；`chrome-profile-*` 是 headless 配置目录，`.gitignore` 已覆盖、可删。
 
 **运行验证前先起服务**（`npm run preview` 或 `npm run dev`）。服务挂掉时脚本报的是"选择器找不到"而不是"连不上"，见 §5.4。`checks.mjs` 单轮约 3–6 分钟，别用短超时跑它。
 
@@ -221,7 +223,7 @@ node .review/probe-stage-d.mjs http://127.0.0.1:4173/   # Reminder / AI / Sync �
 
 ## 7. Git 现状与提交规则
 
-- **仓库已初始化**（此前不存在）。默认分支 `main`，已有一次提交：`47fbe93 Daymark / 拾序 官网：首页十节与完整 Footer 首次提交`，86 个文件 / 22614 行。
+- **仓库已初始化**（此前不存在）。默认分支 `main`，结项时共 **13 次提交**（自 `47fbe93` 首发至末次结项文档提交）：Scene 04 节奏从 `f09f49a`（锚定舞台）到 `70f03a3`（中间页双倍）共六次改动；其间 Scene 07 拍点与 Scene 04 收束句（`fe92e69`）、演示案例换新（`67f2969`）、Scene 01 三轮（`a218b6f` / `af6f99d` / `ea6a421`）。完整列表看 `git log --oneline`。
 - **没有任何 remote，从未 push**。远端约定见 `DEPLOY.md`：`https://github.com/a161858970-ux/Daymark`。**没有明确推送规则时不要擅自 push。**
 - 提交信息用中文，遵循 conventional 风格：首行 `type(scope): 摘要`，正文说明范围、关键机制与验证结果。
 - `.gitignore` 忽略 `node_modules`、`dist`、`.env*`、编辑器目录，以及 `.review/` 下的产物（`*.png` / `*.json` / `*.log` / `chrome-profile*`，**任意深度**）。**脚本保留、产物不提交** —— `.review/` 下的验证脚本是有价值的项目资产，改产品时应与代码一起提交。
@@ -253,7 +255,7 @@ node .review/probe-stage-d.mjs http://127.0.0.1:4173/   # Reminder / AI / Sync �
 
 | 事项 | 说明 |
 |---|---|
-| **远端仓库与首次推送** | 本地已有 `47fbe93`，但**没有 remote**。推送目标与时机由你决定 |
+| **远端仓库与首次推送** | 本地已有 13 次提交（`git log` 可见全程），但**没有 remote**。推送目标与时机由你决定 |
 | 域名与部署 | `DEPLOY.md` 已写好，等你按顺序操作；期间 `api.daymark.top` 的解析记录必须先照抄到 Cloudflare 再改 NS，否则 API 会断 |
 | 品牌资产 | `public/favicon.svg` 是按品牌标记几何重绘的矢量版本；Logo 用的是产品 App 既有标记几何。若存在正式矢量资产，应替换 |
 | 英文文案 V2 | 当前是独立撰写的第一版，锁定前需要一轮语言润色 |
@@ -261,7 +263,7 @@ node .review/probe-stage-d.mjs http://127.0.0.1:4173/   # Reminder / AI / Sync �
 
 ### 9.2 已知风险
 
-1. **只有一次提交、没有远端** —— 本地历史存在了，但硬盘故障仍会带走全部内容。建议尽快接上远端。
+1. **没有远端、从未 push** —— 本地已有 13 次提交与完整文档，但硬盘故障仍会带走全部内容。建议尽快接上远端（远端约定见 `DEPLOY.md`）。
 2. **`<1024px` 的 tablet motion 尚未评审** —— 已知那里 sticky 关闭、Scene 04 退化为顺序排列，但 768–1024 区间的动效节奏没有专门看过。用户已明确排期到整页验收之后。
 3. **两处"成对参数"**：Scene 04 的 `.views-stage` 高度 ↔ `ViewsScene.tsx` 的窗口（窗口现在锚在舞台；两条节奏断言守着钉住与释放两个端点，但舞台高度本身仍要成对改）；Scene 07 的 `.scene-sync` 尾部空间 ↔ 其 `leadIn`。改一处必须改另一处，两边都有交叉注释。
 4. **`checks.mjs` 依赖页面总长度**：Scene 07/08 靠后的场景在测试视口下可能滚不到自己的终点。判断"是否完成"请用 `probe-page-end.mjs`（六视口），不要用 `checks.mjs` 里的固定偏移推断。
