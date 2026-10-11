@@ -18,16 +18,16 @@ test("resolves the default Chinese demo sentence", () => {
 });
 
 test("resolves a secondary Chinese example", () => {
-  const outcome = parseCapture("明天数理统计记得带电脑", "cn");
+  const outcome = parseCapture("明天数理统计记得带讲义资料", "cn");
   assert.equal(outcome.resolved, true);
   assert.equal(outcome.item.course, "数理统计");
   assert.equal(outcome.item.time, "明天");
-  assert.equal(outcome.item.title, "明天带电脑");
+  assert.equal(outcome.item.title, "明天带讲义资料");
 });
 
-test("recognises the longer course name instead of a shorter prefix", () => {
-  const outcome = parseCapture("AI 职业与保险下周看第四章", "cn");
-  assert.equal(outcome.item.course, "AI 职业与保险");
+test("recognises the literature course in the sentence", () => {
+  const outcome = parseCapture("文学赏析下周看第四章", "cn");
+  assert.equal(outcome.item.course, "文学赏析");
   assert.equal(outcome.item.time, "下周");
 });
 
@@ -57,7 +57,7 @@ test("resolves the English demo sentence", () => {
 });
 
 test("resolves an English sentence without a hand-in verb", () => {
-  const outcome = parseCapture("Bring my laptop to mathematical statistics tomorrow", "en");
+  const outcome = parseCapture("Bring the handout to mathematical statistics tomorrow", "en");
   assert.equal(outcome.resolved, true);
   assert.equal(outcome.item.course, "mathematical statistics");
   assert.equal(outcome.item.time, "tomorrow");

@@ -30,12 +30,12 @@ export interface ParseOutcome {
   item: ParsedCapture;
 }
 
-const CN_COURSES = ["高等数学", "数理统计", "AI 职业与保险"] as const;
+const CN_COURSES = ["高等数学", "数理统计", "文学赏析"] as const;
 
 const EN_COURSES = [
   "advanced mathematics",
   "mathematical statistics",
-  "ai, careers and insurance",
+  "literature appreciation",
 ] as const;
 
 const CN_DAYS = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"] as const;
@@ -91,7 +91,7 @@ function stripToken(source: string, token: string): string {
 /**
  * Tidies a remainder for display. It only removes what carries no meaning —
  * softeners, articles and stray punctuation. Words like 交 / 带 / 看 stay:
- * "明天记得带电脑" should read "明天带电脑", not "明天 电脑".
+ * "明天记得带讲义资料" should read "明天带讲义资料", not "明天 讲义资料".
  */
 function tidy(text: string, locale: ParserLocale): string {
   const collapsed = text.replace(/\s{2,}/g, " ").trim();
@@ -196,8 +196,8 @@ export function parseCapture(rawInput: string, locale: ParserLocale = "cn"): Par
 
   /**
    * The item title keeps the visitor's own phrasing whenever the sentence still
-   * says something after the course is removed ("明天带电脑" stays
-   * "明天带电脑"). It is only rebuilt — "周五交作业" — when the remainder is
+   * says something after the course is removed ("明天带讲义资料" stays
+   * "明天带讲义资料"). It is only rebuilt — "周五交作业" — when the remainder is
    * nothing but a time word, which would otherwise read as a fragment.
    *
    * The deliverable word (PPT, 作业) stays inside the title; the interface shows

@@ -59,7 +59,7 @@ export const en = {
   smallThings: {
     title: "The things you forget are rarely the big ones.",
     description:
-      "“Second assignment due Friday.” “Bring my laptop tomorrow.” “The lecturer said chapter 5.” “Hand it in next week.” None of it is large — it just scatters across courses, chats, memory and calendars.",
+      "“Second assignment due Friday.” “Bring the handout tomorrow.” “The lecturer said chapter 5.” “Hand it in next week.” None of it is large — it just scatters across courses, chats, memory and calendars.",
     fragments: [
       { text: showcase.en.fragments[0], weight: 2 },
       { text: showcase.en.fragments[1], weight: 2 },
@@ -212,7 +212,7 @@ export const en = {
        not a translation of the Chinese. */
     entries: [
       { time: "08:15", what: "Something comes to mind", note: "Hand in the second assignment on Friday" },
-      { time: "11:40", what: "A new requirement appears in class", note: "The lecturer said chapter 5" },
+      { time: "11:40", what: "A new requirement appears in class", note: "The lecturer said to focus on chapter 5" },
       { time: "14:20", what: "A reminder arrives", note: "Friday · 23:59" },
       { time: "18:05", what: "Open the course page to check", note: "Advanced Mathematics" },
     ],

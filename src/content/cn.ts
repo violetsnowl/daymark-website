@@ -61,7 +61,7 @@ export const cn = {
   smallThings: {
     title: "真正容易忘记的，往往不是大事。",
     description:
-      "“周五交第二次作业。”“明天记得带电脑。”“老师说看第五章。”“下周再交。”这些事情都不大，却散落在课程、聊天、脑子和日历之间。",
+      "「周五交第二次作业」「明天记得带讲义资料」「老师说看第五章」「下周再交」这些事情都不大，却散落在课程、聊天、脑子和日历之间。",
     fragments: [
       { text: showcase.cn.fragments[0], weight: 2 },
       { text: showcase.cn.fragments[1], weight: 2 },
@@ -207,7 +207,7 @@ export const cn = {
        W4 §8.6 明确禁止，而且这一段要说的本来就是"少占一点脑子"。 */
     entries: [
       { time: "08:15", what: "想到一件事", note: "周五交高等数学第二次作业" },
-      { time: "11:40", what: "课程里出现一个新要求", note: "老师说看第五章" },
+      { time: "11:40", what: "课程里出现一个新要求", note: "老师说重点看第五章" },
       { time: "14:20", what: "收到一次提醒", note: "周五 · 23:59" },
       { time: "18:05", what: "打开课程页核对", note: "高等数学" },
     ],
@@ -216,7 +216,7 @@ export const cn = {
 
   closing: {
     brand: demo.brandCn,
-    title: "把该记的，交给拾序。",
+    title: "把该记的，交给拾序",
     subcopy: "从下一件小事开始。",
     cta: "开始使用",
     back: "回到前面看看",

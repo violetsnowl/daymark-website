@@ -116,8 +116,8 @@ export const showcase: Record<"cn" | "en", ShowcaseSet> = {
     },
     heroItems: [
       { course: "高等数学", title: "周五交第二次作业", time: "周五 · 23:59" },
-      { course: "数理统计", title: "明天带电脑", time: "明天 · 10:00" },
-      { course: "AI 职业与保险", title: "阅读第 4 章", time: "下周" },
+      { course: "数理统计", title: "明天带讲义资料", time: "明天 · 10:00" },
+      { course: "文学赏析", title: "阅读第 4 章", time: "下周" },
     ],
     secondaryItems: [
       { course: "高等数学", title: "阅读课程资料" },
@@ -134,7 +134,7 @@ export const showcase: Record<"cn" | "en", ShowcaseSet> = {
       ],
       caption: "周五",
     },
-    fragments: ["周五交第二次作业", "明天记得带电脑", "老师说看第五章", "下周再交"],
+    fragments: ["周五交第二次作业", "明天记得带讲义资料", "老师说看第五章", "下周再交"],
     ghostFragment: "这件事属于哪门课？",
   },
   en: {
@@ -158,11 +158,11 @@ export const showcase: Record<"cn" | "en", ShowcaseSet> = {
       },
       {
         course: "Mathematical Statistics",
-        title: "Bring my laptop",
+        title: "Bring the handout",
         time: "Tomorrow · 10:00",
       },
       {
-        course: "AI, Careers and Insurance",
+        course: "Literature Appreciation",
         title: "Read chapter 4",
         time: "Next week",
       },
@@ -183,7 +183,7 @@ export const showcase: Record<"cn" | "en", ShowcaseSet> = {
     },
     fragments: [
       "Second assignment due Friday",
-      "Bring my laptop tomorrow",
+      "Bring the handout tomorrow",
       "The lecturer said chapter 5",
       "Hand it in next week",
     ],
@@ -203,7 +203,7 @@ export const showcaseStrings: Record<"cn" | "en", ShowcaseStrings> = {
     moreCount: "其余事项不在展示范围内",
     duePrefix: "截止",
     captureInput: "周五交高等数学第二次作业",
-    captureExamples: ["明天数理统计记得带电脑", "AI 职业与保险下周看第四章"],
+    captureExamples: ["明天数理统计记得带讲义资料", "文学赏析下周看第四章"],
     capture: {
       recorded: "已记录",
       structuring: "正在整理",
@@ -216,7 +216,7 @@ export const showcaseStrings: Record<"cn" | "en", ShowcaseStrings> = {
       clarifyAction: "先记着，稍后再归位",
       clarifyKeep: "保持原样",
     },
-    courses: ["高等数学", "数理统计", "AI 职业与保险"],
+    courses: ["高等数学", "数理统计", "文学赏析"],
   },
   en: {
     brandCn: "拾序",
@@ -230,8 +230,8 @@ export const showcaseStrings: Record<"cn" | "en", ShowcaseStrings> = {
     duePrefix: "due",
     captureInput: "Hand in the second advanced mathematics assignment on Friday",
     captureExamples: [
-      "Bring my laptop to statistics tomorrow",
-      "Read chapter 4 for AI, careers and insurance next week",
+      "Bring the handout to statistics tomorrow",
+      "Read chapter 4 for literature appreciation next week",
     ],
     capture: {
       recorded: "Recorded",
@@ -247,7 +247,7 @@ export const showcaseStrings: Record<"cn" | "en", ShowcaseStrings> = {
     courses: [
       "advanced mathematics",
       "mathematical statistics",
-      "AI, careers and insurance",
+      "literature appreciation",
     ],
   },
 };

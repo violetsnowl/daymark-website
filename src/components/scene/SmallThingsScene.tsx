@@ -148,6 +148,24 @@ export function SmallThingsScene() {
     layout: LAYOUT[index] ?? null,
   }));
 
+  /* The acceptance pass measured the description breaking 「都不 / 大」 once
+     the quote brackets made the line slightly denser (2026-10-11). Keep the
+     predicate whole so the wrap lands on the subject boundary (「这些事情 /
+     都不大」) — the same nowrap technique as the scene headings. English
+     never matches this unit and renders unchanged. */
+  const description = copy.smallThings.description;
+  const notBigAt = description.indexOf("都不大，");
+  const descriptionNode =
+    notBigAt >= 0 ? (
+      <>
+        {description.slice(0, notBigAt)}
+        <span className="nowrap">{"都不大，"}</span>
+        {description.slice(notBigAt + 4)}
+      </>
+    ) : (
+      description
+    );
+
   return (
     <section
       id="ideas"
@@ -211,7 +229,7 @@ export function SmallThingsScene() {
             <h2 id="small-things-title" className="small-things-title display">
               {copy.smallThings.title}
             </h2>
-            <p className="small-things-description">{copy.smallThings.description}</p>
+            <p className="small-things-description">{descriptionNode}</p>
           </div>
         </div>
       </div>
