@@ -76,6 +76,19 @@ export function HeroScene() {
     };
   }, [pointerCapable, reducedMotion]);
 
+  /* Keep the closing word whole when the headline wraps on a narrow screen:
+     at 390 the line previously broke inside 「位置。」 — same nowrap
+     technique as the Scene 03 heading fix (review follow-up, user ruling). */
+  const heroTitle = copy.hero.title;
+  const heroTitleNode = heroTitle.endsWith("位置。") ? (
+    <>
+      {heroTitle.slice(0, -3)}
+      <span className="nowrap">位置。</span>
+    </>
+  ) : (
+    heroTitle
+  );
+
   return (
     <section
       ref={sceneRef}
@@ -90,7 +103,7 @@ export function HeroScene() {
           {/* W3 Prototype Baseline (locked 2026-10-08): headline → description →
               CTA → product surface. No eyebrow layer above the headline. */}
           <h1 id="hero-title" className="hero-title display">
-            {copy.hero.title}
+            {heroTitleNode}
           </h1>
           <p className="lead hero-description">{copy.hero.description}</p>
           <div className="hero-actions">

@@ -71,6 +71,19 @@ export function DayScene() {
     stage.dataset.dayState = closing.arrived ? "settled" : "filling";
   }, [progress, closing.eased, closing.arrived]);
 
+  /* The closing phrase wraps as one unit so the headline never leaves a
+     three-glyph stub on its own line (user ruling, follow-up to review
+     P2-1 — same technique as the Scene 03 heading fix). */
+  const dayTitle = copy.day.title;
+  const dayTitleNode = dayTitle.endsWith("自己的日子。") ? (
+    <>
+      {dayTitle.slice(0, -6)}
+      <span className="nowrap">自己的日子。</span>
+    </>
+  ) : (
+    dayTitle
+  );
+
   return (
     <section
       id="day"
@@ -84,7 +97,7 @@ export function DayScene() {
         <SceneHeader
           id="day-title"
           index={copy.day.index}
-          title={copy.day.title}
+          title={dayTitleNode}
           description={copy.day.description}
         />
 

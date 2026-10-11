@@ -1167,9 +1167,10 @@
 }
 
 /* A meaningful unit that must never split across lines (Scene 03's
-   「“做什么”。」): the headline may wrap before it, never inside it.
-   Added for the 2026-10-11 review (P2-1 — the line broke after 「做什」). */
-.scene-title .nowrap {
+   「“做什么”。」, the hero's 「位置。」, Scene 08's 「自己的日子。」): the line
+   may wrap before the unit, never inside it. Added for the 2026-10-11
+   review (P2-1) and its follow-ups. */
+.nowrap {
   white-space: nowrap;
 }
 
