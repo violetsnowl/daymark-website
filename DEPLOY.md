@@ -16,7 +16,7 @@ Cloudflare 可以做到你听说的两件事，而且这两件事是分开的两
 | 听说的说法 | 实际是什么 | 在这份文档里的位置 |
 |---|---|---|
 | "Cloudflare 可以托管域名" | 把域名的 **DNS 解析**交给 Cloudflare 管理（改 nameserver） | 第 1–2 步 |
-| "Cloudflare 一键部署 GitHub 项目" | **Cloudflare Pages**：连上 GitHub 仓库，每次 `git push` 自动构建并上线 | 第 3–5 步 |
+| "Cloudflare 一键部署 GitHub 项目" | **Cloudflare（Workers / Pages 两种托管）**：连上 GitHub 仓库，每次 `git push` 自动构建并上线 | 第 3–5 步 |
 
 ---
 
@@ -77,6 +77,8 @@ nslookup daymark.top
    yyyy.ns.cloudflare.com
    ```
 
+   （本次实际分配：`curt.ns.cloudflare.com` 与 `sydney.ns.cloudflare.com`。）
+
 ### 2.2 去注册商改 nameserver
 
 回到你的域名注册商后台 → 找到该域名的 **DNS / 名称服务器（Name Servers）** 设置 → 改成"使用自定义 DNS"，填入 Cloudflare 给的那两个地址 → 保存。
@@ -107,14 +109,14 @@ curl.exe -I https://api.daymark.top/
 
 - **橙色云 vs 灰色云**：记录旁边那朵云，橙色 = 流量经过 Cloudflare（可缓存、可隐藏源站），灰色 = 直接解析（DNS only）。
   - `api.daymark.top` **建议先设为灰色云（DNS only）**，确认 API 正常后，再决定是否切橙色云。切橙色云时 SSL/TLS 模式要设成 **Full (strict)**，并且源站要有有效证书，否则会出现重定向循环或 525 错误。
-  - 官网（Pages 自定义域）用 Cloudflare 默认即可。
+  - 官网（Workers / Pages 自定义域）用 Cloudflare 默认即可。
 - `www` 的处理：在 **Rules → Redirect Rules** 建一条规则，把 `www.daymark.top/*` 301 重定向到 `https://daymark.top/$1`，这样搜索引擎只会把主域名当主站。
 
 ---
 
 ## 3. 把仓库推到 GitHub
 
-Cloudflare Pages 的"一键部署"是从 GitHub 仓库构建的，所以官网需要先在 GitHub 上有一个仓库。
+Cloudflare 的"一键部署"（Pages / Workers 任一托管流程）是从 GitHub 仓库构建的，所以官网需要先在 GitHub 上有一个仓库。
 
 > W0 §23 要求官网与产品 App 分仓，所以这里是**新建一个仓库**，不要放进 Daymark 主仓库。
 
@@ -123,10 +125,10 @@ cd "E:\CUFE\vibecoding\Daymark website"
 
 git init
 git add .
-git commit -m "Daymark website: W3 prototype (nav + hero + scene 01 + scene 02)"
+git commit -m "官网初版"
 
-# 在 GitHub 网页上新建一个空仓库，例如 Daymark-site，然后：
-git remote add origin https://github.com/<你的用户名>/Daymark-site.git
+# 在 GitHub 网页上新建一个空仓库（本仓库实际用的是 private 的 daymark-website），然后：
+git remote add origin https://github.com/violetsnowl/daymark-website.git
 git branch -M main
 git push -u origin main
 ```
@@ -136,18 +138,20 @@ git push -u origin main
 
 ---
 
-## 4. 用 Cloudflare Pages 部署官网
+## 4. 用 Cloudflare 部署官网（Workers + Git 仓库）
 
-1. Cloudflare 后台左侧选 **Workers & Pages** → **Create** → **Pages** → **Connect to Git**。
-2. 授权 GitHub，选中 `Daymark-site` 仓库。
+> 2026-10 起 Cloudflare 的新建流程是「Workers 导入 Git 仓库」（不再显式叫 Pages）；对纯静态站两者等效，本节按当前界面写。
+
+1. Cloudflare 后台左侧选 **Workers & Pages** → **Create** → **Connect to Git**。
+2. 授权 GitHub（建议选"仅授权选定仓库"），勾选 `daymark-website` 仓库。
 3. 构建配置填：
 
    | 字段 | 值 |
    |---|---|
+   | Project name | `daymark-website` |
    | Production branch | `main` |
-   | Framework preset | `None` 或 `Vite` |
    | Build command | `npm run build` |
-   | Build output directory | `dist` |
+   | Deploy command | `npx wrangler deploy`（产物目录与 SPA 回退由仓库根的 `wrangler.jsonc` 声明） |
    | Root directory | 留空（仓库根目录就是项目根目录） |
 
 4. **Environment variables（可选，但建议）**：
@@ -158,17 +162,19 @@ git push -u origin main
    | `VITE_SITE_URL` | `https://daymark.top` | 站点自身地址 |
    | `VITE_GITHUB_URL` | 你的公开仓库地址 | Footer 的 GitHub 链接 |
 
-   > 这些都是**公开**信息，会进入浏览器产物，这是正常的。数据库密码、JWT、Supabase service key、LLM key **绝不要**放在这里（W4 §35）。
+   > 这些变量都有内置默认值，不配置也能正确上线；它们都是**公开**信息，会进入浏览器产物，这是正常的。数据库密码、JWT、Supabase service key、LLM key **绝不要**放在这里（W4 §35）。
 
-5. 点 **Save and Deploy**，等 1–2 分钟。成功后你会得到一个 `xxx.pages.dev` 的临时地址，先点开看看对不对。
+5. 点 **Save and Deploy**（新版界面即右下角 **Deploy**），等 1–2 分钟。成功后你会得到一个 `daymark-website.xxx.workers.dev` 的地址，先点开看看对不对。
 
 ### 4.1 SPA 路由
 
-仓库里的 `public/_redirects` 已经配置好，Cloudflare 会把未知路径交给 `index.html`，因此 `daymark.top/en/` 能正常打开而不是 404。
+`wrangler.jsonc` 里的 `not_found_handling: "single-page-application"` 会把未命中的路径交给 `index.html`（应用内路由自行作答），因此 `daymark.top/en/` 能正常打开而不是 404。
+
+**不要**用 `public/_redirects` 做这件事：Workers 会拒绝 `/* → /index.html` 这条规则（报 `Invalid _redirects configuration … [code: 100324]`，"可能死循环"）；本仓库曾因此部署失败过一次，已把该文件删除，功能由上面的配置承担。
 
 ### 4.2 绑定正式域名
 
-1. 进入该 Pages 项目 → **Custom domains** → **Set up a custom domain**。
+1. 进入该项目 → **Settings** → **Domains & Routes** → **Add** → **Custom domain**（旧版 Pages 界面写作 Custom domains）。
 2. 输入 `daymark.top`，确认。因为域名已经托管在同一个 Cloudflare 账号里，它会自动添加解析记录。
 3. 再加一条 `www.daymark.top`（可选，之后按第 2.4 节做成跳转）。
 4. 等状态变成 **Active**，访问 <https://daymark.top/> 应该就能看到官网了。
@@ -187,7 +193,7 @@ Cloudflare 会自动重新构建并上线。非 `main` 分支和 Pull Request �
 
 ### 4.4 出错怎么回滚
 
-Pages 项目 → **Deployments** → 找到上一个正常版本 → **Rollback**。不需要动 Git。
+项目 → **Deployments**（部署列表）→ 找到上一个正常版本 → **Rollback**。不需要动 Git。
 
 ---
 
@@ -195,7 +201,7 @@ Pages 项目 → **Deployments** → 找到上一个正常版本 → **Rollback*
 
 Daymark Web App 是另一个项目。两种常见做法：
 
-- **也放 Cloudflare Pages**：新建第二个 Pages 项目（连产品仓库），然后加自定义域 `app.daymark.top`，步骤和第 4.2 节一样，最简单。
+- **也放 Cloudflare（Workers / Pages）**：新建第二个托管项目（连产品仓库），然后加自定义域 `app.daymark.top`，步骤和第 4.2 节一样，最简单。
 - **放在你自己的云服务器上**：在 Cloudflare **DNS** 里加一条 `app` 的 `A` 记录指向服务器 IP。先用灰色云确认能访问，再考虑切橙色云（此时 SSL/TLS 用 **Full (strict)**，源站需有证书）。
 
 无论哪种，`api.daymark.top` 都保持独立，不要和官网的托管绑在一起（W0 §24）。
@@ -222,11 +228,14 @@ DNS 还在传播。用 `nslookup -type=NS daymark.top` 确认 NS 是否已切换
 **Q：`api.daymark.top` 出现 525 / 重定向循环？**
 这条记录被设成了橙色云，但源站证书不被信任。把 SSL/TLS 模式改成 **Full (strict)**，或先把这条记录改回灰色云（DNS only）。
 
+**Q：部署报错 `Invalid _redirects configuration … [code: 100324]`？**
+删掉 `public/_redirects`（或不要引入它）。Workers 拒绝 `/* → /index.html` 这类"可能死循环"的规则；SPA 回退由 `wrangler.jsonc` 承担，见 4.1。
+
 **Q：Cloudflare 免费版在中国大陆访问慢？**
 Cloudflare 免费版没有中国大陆节点，国内访问可能不稳定。先用起来观察；如果这是硬需求，再考虑备案 + 国内云托管静态站，或者用国内 CDN。这属于后续优化，不影响第一版上线。
 
 **Q：需要在 Cloudflare 里再买什么吗？**
-不需要。域名解析、Pages 托管、HTTPS 证书在免费版里都有。
+不需要。域名解析、网站托管（Workers / Pages）、HTTPS 证书在免费版里都有。
 
 **Q：会不会影响我给 AI 用的那些密钥？**
 官网是纯静态站点，不含任何服务端逻辑，也不持有任何密钥；展示用的产品界面全部是本地假数据，不联网、不写库、不调用模型。你的密钥只应该待在后端（W0 §25）。

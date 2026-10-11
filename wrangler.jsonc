@@ -1,10 +1,11 @@
 {
-  /* Cloudflare Workers static assets deployment (new "import a Git
-     repository" flow; the dashboard runs `npm run build` then
-     `npx wrangler deploy`, and this file tells wrangler what to publish).
-     `not_found_handling: single-page-application` mirrors the SPA fallback
-     that public/_redirects declares for Pages-style hosts: unknown paths
-     reach index.html and the client router answers (/en/ stays canonical). */
+  /* Cloudflare Workers static assets deployment (the dashboard's "import a
+     Git repository" flow runs `npm run build` then `npx wrangler deploy`;
+     this file tells wrangler what to publish).
+     `not_found_handling: single-page-application` serves index.html for
+     unmatched routes so the client router keeps /en/ canonical. Do NOT
+     reintroduce public/_redirects: Workers rejects `/* -> /index.html`
+     as a possible loop (code 100324). */
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "daymark-website",
   // Set this to today's date
