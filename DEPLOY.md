@@ -166,6 +166,8 @@ git push -u origin main
 
 5. 点 **Save and Deploy**（新版界面即右下角 **Deploy**），等 1–2 分钟。成功后你会得到一个 `daymark-website.xxx.workers.dev` 的地址，先点开看看对不对。
 
+   （本次实际分配：<https://daymark-website.a161858970.workers.dev> —— 2026-10-11 已上线；此后每次 `git push` 会自动重建。）
+
 ### 4.1 SPA 路由
 
 `wrangler.jsonc` 里的 `not_found_handling: "single-page-application"` 会把未命中的路径交给 `index.html`（应用内路由自行作答），因此 `daymark.top/en/` 能正常打开而不是 404。
