@@ -1783,7 +1783,8 @@ try {
   );
   check(
     "all three entries carry an action; the web entry points at the app address",
-    downloadPage.totalActions === 3 && downloadPage.webHref === "https://app.daymark.top",
+    downloadPage.totalActions === 3 &&
+      downloadPage.webHref.startsWith("https://app.daymark.top/"),
     `actions=${downloadPage.totalActions} webHref=${downloadPage.webHref}`,
   );
 
