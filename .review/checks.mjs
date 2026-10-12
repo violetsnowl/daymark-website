@@ -1754,8 +1754,8 @@ try {
       androidHref: document.querySelector('.download-card[data-platform="android"] a')?.href ?? '',
       windowsHref: document.querySelector('.download-card[data-platform="windows"] a')?.href ?? '',
       version: document.querySelector('.download-card-version')?.textContent ?? '',
-      webBadge: document.querySelector('.download-card-web .download-card-coming')?.textContent ?? '',
-      webLinks: document.querySelectorAll('.download-card-web a').length,
+      webHref: document.querySelector('.download-card[data-platform="web"] a')?.href ?? '',
+      totalActions: document.querySelectorAll('.download-card .download-card-action').length,
       recommended: document.querySelectorAll('.download-card.is-recommended').length,
     }))()`,
   );
@@ -1782,9 +1782,9 @@ try {
     downloadPage.version,
   );
   check(
-    "the web option is present, marked as upcoming, and carries no dead link",
-    downloadPage.webBadge.length > 0 && downloadPage.webLinks === 0,
-    `badge="${downloadPage.webBadge}" links=${downloadPage.webLinks}`,
+    "all three entries carry an action; the web entry points at the app address",
+    downloadPage.totalActions === 3 && downloadPage.webHref === "https://app.daymark.top",
+    `actions=${downloadPage.totalActions} webHref=${downloadPage.webHref}`,
   );
 
   /* Device marks: an Android UA and a Windows UA each light the right card; an

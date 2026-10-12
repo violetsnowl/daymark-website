@@ -231,18 +231,15 @@ export const cn = {
     currentVersion: "最新版本",
     android: {
       name: "安卓版",
-      note: "APK 安装包，下载后按提示安装。",
       action: "下载安卓版",
     },
     windows: {
       name: "Windows 版",
-      note: "安装程序（.exe），双击安装。",
       action: "下载 Windows 版",
     },
     web: {
       name: "网页版",
-      note: "在浏览器里直接使用，不用安装。",
-      badge: "即将推出",
+      action: "进入网页版",
     },
     footnote: "登录同一个账号，内容保持同步。",
     meta: {

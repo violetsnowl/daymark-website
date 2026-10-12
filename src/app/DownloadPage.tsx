@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "../app/LocaleProvider.tsx";
 import { SiteFooter } from "../components/site/SiteFooter.tsx";
-import { downloadConfig } from "../content/config.ts";
+import { appUrl, downloadConfig } from "../content/config.ts";
 import { useReducedMotion } from "../motion/index.ts";
 
 type Platform = "android" | "windows" | null;
@@ -10,7 +10,7 @@ type Platform = "android" | "windows" | null;
  * The visitor's device, inferred from the UA.
  *
  * This only decides where the quiet 「为你的设备推荐」 mark goes — it is a hint,
- * never a gate: every download stays one tap away on every device, and a wrong
+ * never a gate: every entry stays one tap away on every device, and a wrong
  * guess costs nothing.
  */
 function detectPlatform(): Platform {
@@ -29,11 +29,12 @@ interface ReleaseInfo {
 /**
  * `/download/` (2026-10-12).
  *
- * The page never hardcodes a version. The Android link is a permanent alias on
- * the API mirror (replaced server-side on every release), and the Windows link
- * is read from the same update manifest the app itself uses — so the page is
- * always the latest release without anyone editing copy. Anything unexpected
- * falls back to a static URL; the downloads must never depend on the request.
+ * Three equivalent entries. The page never hardcodes a version: the Android
+ * link is a permanent alias on the API mirror (replaced server-side on every
+ * release), and the Windows link is read from the same update manifest the app
+ * itself uses — so the page is always the latest release without anyone
+ * editing copy. The web entry points at the app address; when the web build
+ * ships it simply connects. Anything unexpected falls back to a static URL.
  */
 export function DownloadPage() {
   const { copy } = useLocale();
@@ -81,9 +82,9 @@ export function DownloadPage() {
     };
   }, []);
 
-  /* The recommended card's glow, adapted from the BorderGlow technique: the
-     handler publishes three numbers onto the element's own custom properties
-     and the CSS does the rest — no state, no re-render.
+  /* The cards' glow, adapted from the BorderGlow technique: the handler
+     publishes three numbers onto the element's own custom properties and the
+     CSS does the rest — no state, no re-render.
 
        --cursor-angle    direction from the card's centre toward the pointer
                          (conic degrees: 0 = up, clockwise)
@@ -92,8 +93,8 @@ export function DownloadPage() {
        --glow-x/--glow-y where the centre→pointer ray meets the border, so the
                          ring's hot spot sits on the cone's own centreline
 
-     Mouse-only, and disabled under reduced motion (the chip carries the
-     meaning in both cases). */
+     Mouse-only, and disabled under reduced motion. Every card runs it: the
+     glow is the shared hover language of the three entries. */
   const handleCardGlow = (event: React.PointerEvent<HTMLLIElement>) => {
     if (event.pointerType !== "mouse") return;
     const el = event.currentTarget;
@@ -130,6 +131,7 @@ export function DownloadPage() {
     el.style.setProperty("--glow-y", `${gy.toFixed(1)}px`);
   };
 
+  const glowProps = reducedMotion ? {} : { onPointerMove: handleCardGlow };
   const windowsHref = release?.windowsUrl ?? downloadConfig.windowsFallback;
   const versionLine = release?.version ? `${d.currentVersion} v${release.version}` : null;
 
@@ -148,15 +150,12 @@ export function DownloadPage() {
             <li
               className={`download-card${platform === "android" ? " is-recommended" : ""}`}
               data-platform="android"
-              onPointerMove={
-                platform === "android" && !reducedMotion ? handleCardGlow : undefined
-              }
+              {...glowProps}
             >
               {platform === "android" ? (
                 <p className="download-recommended">{d.recommended}</p>
               ) : null}
               <h2 className="download-card-name">{d.android.name}</h2>
-              <p className="download-card-note">{d.android.note}</p>
               {versionLine ? <p className="download-card-version">{versionLine}</p> : null}
               <a
                 className="btn btn-primary download-card-action"
@@ -172,15 +171,12 @@ export function DownloadPage() {
             <li
               className={`download-card${platform === "windows" ? " is-recommended" : ""}`}
               data-platform="windows"
-              onPointerMove={
-                platform === "windows" && !reducedMotion ? handleCardGlow : undefined
-              }
+              {...glowProps}
             >
               {platform === "windows" ? (
                 <p className="download-recommended">{d.recommended}</p>
               ) : null}
               <h2 className="download-card-name">{d.windows.name}</h2>
-              <p className="download-card-note">{d.windows.note}</p>
               {versionLine ? <p className="download-card-version">{versionLine}</p> : null}
               <a className="btn btn-primary download-card-action" href={windowsHref}>
                 {d.windows.action}
@@ -190,10 +186,11 @@ export function DownloadPage() {
               </a>
             </li>
 
-            <li className="download-card download-card-web" data-platform="web">
+            <li className="download-card" data-platform="web" {...glowProps}>
               <h2 className="download-card-name">{d.web.name}</h2>
-              <p className="download-card-note">{d.web.note}</p>
-              <p className="download-card-coming">{d.web.badge}</p>
+              <a className="btn btn-primary download-card-action" href={appUrl}>
+                {d.web.action}
+              </a>
             </li>
           </ul>
 

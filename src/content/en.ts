@@ -236,18 +236,15 @@ export const en = {
     currentVersion: "Latest",
     android: {
       name: "Android",
-      note: "An APK package — install it and follow the system prompts.",
       action: "Download for Android",
     },
     windows: {
       name: "Windows",
-      note: "An installer (.exe) — download it, then run it.",
       action: "Download for Windows",
     },
     web: {
       name: "Web",
-      note: "Use it right in your browser — nothing to install.",
-      badge: "Coming soon",
+      action: "Open the web app",
     },
     footnote: "Sign in to the same account and everything stays in sync.",
     meta: {
