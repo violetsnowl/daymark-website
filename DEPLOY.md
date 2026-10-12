@@ -258,4 +258,4 @@ Cloudflare 免费版没有中国大陆节点，国内访问可能不稳定。先
 | api | `api.daymark.top` A `206.187.209.142`（灰云 DNS only，保持不动） |
 | 验证（2026-10-12，1.1.1.1 DoH + 直连） | 官网 200 / `/en/` 200 / SPA 回退 200 / www 301 / api health 200 / items 401 / latest.json 200 / APK 别名 200 —— 全过 |
 
-**遗留**：`Always Use HTTPS` 尚待开启（见 §6）；下载页 `/download/` 与 `app.daymark.top`（Web 版）为后续工作。
+**后续进展**：`Always Use HTTPS` 已开启并复验；下载页 `/download/` 已于 2026-10-12 上线（`daymark.top/download/` 与 `/en/download/`）；`app.daymark.top` 先由跳转规则指向下载页（302 临时，Web 版上线后改指本体）。

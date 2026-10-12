@@ -366,7 +366,22 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 - `www.daymark.top/verify-www?x=1` → 301 → `https://daymark.top/verify-www?x=1`（路径与查询串保留）。
 - api：`/api/v1/health` 200；`/api/v1/items` 401（鉴权正常）；`/update/latest.json` 200（0.2.2；win exe 镜像直链 200，安卓资产经 GitHub 302 有效）；`/update/app-universal-release.apk` 200（≈29.7MB 永久别名）。
 
-**待办（后续在本节追加）**：`Always Use HTTPS` 已开启并复验（2026-10-12：`http://daymark.top/` 301 → https；`http://www.daymark.top/…` 两级 301 至 `https://daymark.top/…`，路径与查询串保留；api 的 http 由 Caddy 自行 308 跳 https）；下载页 `/download/`（设备识别 + 网页版第三格预留）；`app.daymark.top` 待 Web 版就绪后接入。
+**待办（后续在本节追加）**：下载页 —— 见 §0L（已上线）；`app.daymark.top` 跳转配置（先指向下载页，Web 版上线后改指本体）。`Always Use HTTPS` 已开启并复验（http 301 → https；www 两级 301；api 由 Caddy 308）。
+
+---
+
+## 0L. 下载页 /download/（2026-10-12，已上线）
+
+**交付**：站内下载页 `daymark.top/download/`（+ `/en/download/`）——三个平等入口：安卓版 / Windows 版 / 网页版。
+
+- **永远最新**：安卓 = API 镜像永久别名；Windows = 运行时读取 `api.daymark.top/update/latest.json`（CORS `*` 已验证），失败回退静态地址；版本行随清单显示。
+- **设备识别**：「为你的设备推荐」徽标 + 卡面材质差异（更亮的表面、更实的描边）承担推荐语义；iPhone 等无对应版本时不标注；徽标带轻浮现动效。
+- **卡片光效**（参考 ReactBits BorderGlow 思路改编）：conic 方向锥指向鼠标 + 边缘接近度驱动 + 2px 定向光带 + 三层外光帘 + 内侧浸润；**三卡共用**（hover 是卡片本身的交互语言）；品牌绿单色；触屏与 reduced-motion 保持静态。
+- **网页版入口**：与另两卡统一样式，按钮 → `app.daymark.top`（Web 版上线即接通）。
+- **元数据**：页面级 title/description/canonical/hreflang；sitemap 双语条目。
+- **验证**：断言 **103/103**（11 条下载页断言：三卡入口 / 链接来源 / 三态 UA / 无横向溢出 / EN / reduced-motion）；光效像素级复核；上线后外网复核（`/download/`、`/en/download/` 200；bundle 与本地一致；sitemap 含目录）。真机视图复核：桌面 = Windows 徽标、390 安卓 UA = 安卓徽标、EN 文案正确。
+
+**过程中修掉**：① `mask` 会把盒子之外的 paint 裁掉——外光帘（box-shadow）曾被整层裁没 → 外光帘不挂遮罩；② recommended 卡的光环覆盖层曾硬编码 raised surface → 引入 `--card-surface` 按卡区分。
 
 ---
 
