@@ -2182,8 +2182,10 @@
   opacity: calc(0.9 * var(--day-calm));
 }
 
-/* An editorial timeline, not a dashboard: a time column and what happened, with
-   nothing to count. */
+/* An editorial timeline, not a dashboard: time, then the moment, stacked —
+   each time belongs to its own entry instead of forming a column, and there
+   is no rule or box to read it against (user ruling 2026-10-11: the old
+   time-column form read as a timetable). */
 .day-timeline {
   display: grid;
   gap: clamp(28px, 5vh, 52px);
@@ -2195,9 +2197,7 @@
 
 .day-entry {
   display: grid;
-  grid-template-columns: 5.5em minmax(0, 1fr);
-  align-items: baseline;
-  gap: clamp(16px, 3vw, 32px);
+  gap: 5px;
   opacity: var(--in, 0);
   transform: translateY(var(--out, 10px));
   transition:
@@ -2212,18 +2212,9 @@
   letter-spacing: 0.1em;
 }
 
-.day-body {
-  display: grid;
-  gap: 5px;
-  /* A hairline down the timeline, so the entries read as one day rather than as a
-     list of unrelated rows. */
-  padding-inline-start: clamp(14px, 2vw, 22px);
-  border-inline-start: 1px solid var(--line);
-}
-
 .day-what {
   color: var(--ink);
-  font-size: clamp(15px, 1.3vw, 17px);
+  font-size: clamp(16px, 1.35vw, 18px);
   line-height: 1.6;
 }
 
@@ -2240,17 +2231,6 @@
   transition:
     opacity var(--motion-narrative) var(--ease-settle),
     transform var(--motion-narrative) var(--ease-settle);
-}
-
-@media (max-width: 560px) {
-  .day-entry {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 6px;
-  }
-  .day-body {
-    padding-inline-start: 0;
-    border-inline-start: 0;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

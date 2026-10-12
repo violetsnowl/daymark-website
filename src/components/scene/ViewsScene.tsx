@@ -153,16 +153,24 @@ export function ViewsScene() {
     disabled: !pinned,
   });
 
-  /* The cross-fades are scroll-linked (W4 §4.5), one centred on each switch
-   * point: the overview fades out over 0.15→0.35 and the calendar fades in
-   * over 0.65→0.85; everything between is derived from those two, so no beat
-   * of the pinned stretch is inert. `arrivesAt` is where each fade completes,
-   * `span` how much of the window it takes. */
-  const overviewOut = stepReveal(progress, COURSE_FROM + FADE_SPAN / 2, { span: FADE_SPAN });
-  const calendarIn = stepReveal(progress, CALENDAR_FROM + FADE_SPAN / 2, { span: FADE_SPAN });
+  /* The switches are scroll-linked (W4 §4.5) and strictly sequential —
+   * "fade out, then fade in" (user ruling 2026-10-11): the outgoing
+   * projection completes its fade exactly at the switch point and the
+   * incoming one starts from zero there, so two projections are never
+   * visible at the same time (the old overlapping cross-fade read as a
+   * double exposure at its midpoint). The total span is unchanged — the
+   * FADE_SPAN zone split into two halves — so each switch still plays across
+   * the same stretch of travel and no beat of the pinned stretch is inert.
+   * `arrivesAt` is where each half-fade completes, `span` how much of the
+   * window it takes. */
+  const HALF_FADE = FADE_SPAN / 2;
+  const overviewOut = stepReveal(progress, COURSE_FROM, { span: HALF_FADE });
+  const coursesIn = stepReveal(progress, COURSE_FROM + HALF_FADE, { span: HALF_FADE });
+  const coursesOut = stepReveal(progress, CALENDAR_FROM, { span: HALF_FADE });
+  const calendarIn = stepReveal(progress, CALENDAR_FROM + HALF_FADE, { span: HALF_FADE });
   const viewOpacity: Record<PlanView, number> = {
     overview: 1 - overviewOut.eased,
-    courses: overviewOut.eased - calendarIn.eased,
+    courses: coursesIn.eased - coursesOut.eased,
     calendar: calendarIn.eased,
   };
 

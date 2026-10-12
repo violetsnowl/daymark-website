@@ -117,11 +117,13 @@ export function DayScene() {
                   } as CSSProperties
                 }
               >
+                {/* Time, then the moment, then its note — stacked, so each
+                    time sits with its own entry instead of forming a column
+                    (user ruling 2026-10-11: the two-column form read as a
+                    timetable). */}
                 <p className="day-time">{entry.time}</p>
-                <div className="day-body">
-                  <p className="day-what">{entry.what}</p>
-                  {entry.note ? <p className="day-note">{entry.note}</p> : null}
-                </div>
+                <p className="day-what">{entry.what}</p>
+                {entry.note ? <p className="day-note">{entry.note}</p> : null}
               </li>
             );
           })}
