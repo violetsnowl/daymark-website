@@ -1,6 +1,6 @@
 # Daymark / 拾序 — 品牌官网
 
-`daymark.top` 的前端实现。当前进度：**首页十节全部实现完毕，等待整页视觉验收**（Hero / 小事 / 先记下来 / 上下文 / 换一个位置看 / 提醒 / AI / 离线同步 / 一天 / 落地）+ 完整 Footer。
+`daymark.top` 的前端实现。当前进度：**十节 + 完整 Footer 全部实现，已完成多轮验收修订，并已正式上线 `https://daymark.top`**（2026-10-12，Cloudflare Workers + GitHub 自动部署；Hero / 小事 / 先记下来 / 上下文 / 换一个位置看 / 提醒 / AI / 离线同步 / 一天 / 落地）。
 
 官网不是普通 SaaS 落地页，而是 Daymark 产品视觉语言在公共 Web 空间的延伸。本仓库的所有视觉与动效决定都来自 5 份设计母稿，不在这里重新定义。
 
@@ -143,7 +143,7 @@ node .review/probe-bands.mjs   http://127.0.0.1:4173/ 1440 900   # 逐帧打出 
 
 ## 这一版**没有**做
 
-独立页面（`/about`、`/privacy`、`/terms`）、正式 Open Graph 主视觉、分析埋点、`<1024px` 的 tablet motion 矩阵（用户已明确排期到整页验收之后）、部署。这些属于预期而非缺失，均在母稿的后续 Stage 中，或需项目所有者拍板。
+独立页面（`/about`、`/privacy`、`/terms`）、正式 Open Graph 主视觉、分析埋点、`<1024px` 的 tablet motion 矩阵（用户已明确排期到整页验收之后）、下载页 `/download/`、Web 版。这些属于预期而非缺失，均在母稿的后续 Stage 中，或需项目所有者拍板。
 
 ## 已知待办
 
@@ -151,10 +151,10 @@ node .review/probe-bands.mjs   http://127.0.0.1:4173/ 1440 900   # 逐帧打出 
 2. Logo 目前只使用产品 App 既有的标记几何；若存在正式矢量资产，应替换为它。
 3. 英文文案为独立撰写的第一版，V2 锁定前还需要一轮语言润色。
 4. **一处"成对参数"**需要同步修改，没有自动化检查能抓住不一致：Scene 07 的 `.scene-sync` 尾部空间 ↔ 它的 `leadIn`。它有交叉注释。（Scene 04 原先也是手工成对——舞台高度 ↔ 组件里的窗口——现在由同一次测量写入并由断言看守，不再需要人肉同步；见 REVIEW §0D 第四轮。）
-5. **远端仓库尚未配置** —— 本地已有首次提交（分支 `main`），但没有 remote，还未推送。见 [`HANDOFF.md`](./HANDOFF.md) §7。
+5. ~~**远端仓库尚未配置**~~ —— **已解决（2026-10-11）**：已推送 `violetsnowl/daymark-website`（私人仓库），Cloudflare 连仓自动部署。见 [`HANDOFF.md`](./HANDOFF.md) §7。
 
 ---
 
 ## 部署
 
-域名托管、Cloudflare 与 GitHub 自动部署的完整步骤见 [DEPLOY.md](./DEPLOY.md)。
+**已于 2026-10-12 完成上线**（`daymark.top`；执行记录见 [DEPLOY.md](./DEPLOY.md) §8）。域名托管、Cloudflare 与 GitHub 自动部署的完整步骤见 [DEPLOY.md](./DEPLOY.md)。

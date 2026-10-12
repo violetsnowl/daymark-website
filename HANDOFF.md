@@ -3,7 +3,7 @@
 > 面向上一位之后的**接手者**（人或其他 agent / 模型）。
 > 这份文档负责"现在在哪、怎么接着干、别踩什么"。**实现细节与逐轮修复记录在 [`REVIEW.md`](./REVIEW.md)**，两者不重复：这里给判断，那里给证据。
 >
-> 最后更新：2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G；同日晚：设计审查修复轮——对比度系统修复（达 AA）/ Scene 03 标题断行 / 导航按页序，见 §0H）。仓库已初始化（分支 `main`），**无远端、未推送** —— 见 §7。
+> 最后更新：2026-10-12（官网已上线）｜2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G；同日晚：设计审查修复轮——对比度系统修复（达 AA）/ Scene 03 标题断行 / 导航按页序，见 §0H）。此后：验收修订（§0I/§0J）→ **上线（2026-10-12）**——仓库推送 GitHub 私人仓库 `violetsnowl/daymark-website`，Cloudflare Workers 连仓自动重建；`daymark.top` NS 已切 Cloudflare、全链路验证全绿（执行记录见 `DEPLOY.md` §8 与 `REVIEW.md` §0K）。
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 2. 当前进度
 
-**首页十节全部实现完毕，等待整页视觉验收。未进入部署阶段。**
+**首页十节全部实现；多轮验收修订已完成（REVIEW §0H/§0I/§0J）；官网已于 2026-10-12 上线 `daymark.top`**（部署执行记录见 `DEPLOY.md` §8）。
 
 ```text
 01 Hero                  ✅  05 One Item, Many Views ✅  09 A Day      ✅
@@ -35,7 +35,7 @@
 |---|---|
 | `npm run typecheck` | 通过 |
 | `npm test` | 20/20 |
-| `npm run build` | 通过（JS 326.32 kB / 102.61 kB gzip，CSS 40.84 kB / 8.76 kB gzip） |
+| `npm run build` | 通过（2026-10-12 复核；产物体积以当时 `npm run build` 输出为准） |
 | `node .review/checks.mjs http://127.0.0.1:4173/` | **92/92** |
 | `node .review/probe-page-end.mjs http://127.0.0.1:4173/` | 六视口全通过 |
 | `node .review/probe-views-pacing.mjs http://127.0.0.1:4173/` | Scene 04：整场景居中钉住（进度 0 = 钉住、进度 1 = 释放）、行程 400px（1:2:1 = 100/200/100px）、翻页 0.25/0.75（REVIEW §0D） |
@@ -55,7 +55,7 @@
    - Scene 03 / 05 的逐项到场是否读得出顺序感（这两个场景各被返工过两轮）；
    - **Scene 04（本轮重构，REVIEW.md §0D）**：面板先到位再开讲；交叉淡入连续跟手，不应有"画面不动、只是在等"的区间；释放时收束句就位、没有拖尾；课程页现在有**双倍行程**（≈200px）——留意它是否不再"一闪而过"，总览/日历各 100px 是否仍够。
 2. **`<1024px` tablet motion 矩阵** —— 用户明确要求**留到整页验收之后**再统一做，现在不要动。当前 `<1024px` 不启用 sticky，Scene 04 退化为顺序排列。
-3. **部署** —— 用户明确要求搁置。步骤已写在 [`DEPLOY.md`](./DEPLOY.md)（Cloudflare 托管 + Pages 自动部署 + API 迁移），**不要自行开始**。
+3. **部署（已完成）** —— 2026-10-12 已正式上线 `daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿，记录见 `DEPLOY.md` §8 / `REVIEW.md` §0K）。**后续工作**：① 下载页 `/download/`（设备自动识别 + “为你的设备推荐”指引 + 网页版第三格预留；下载链接永远指向最新版）；② `Always Use HTTPS` 开关确认；③ 网页版（Web App）可行性专项摸底；④ `app.daymark.top` 接入待 Web 版就绪。
 4. 英文文案 V2 语言润色（当前是独立撰写的第一版，见 §6）。
 
 ---
@@ -179,7 +179,7 @@
 
 ### 6.1 环境事实
 
-- **Git 仓库已初始化**：分支 `main`，首次提交 `47fbe93`，**无远端、未推送**。详见 §7。
+- **Git 仓库**：分支 `main`，首次提交 `47fbe93`；已推送 GitHub 私人仓库 `violetsnowl/daymark-website`（Cloudflare 连仓自动部署）。详见 §7。
 - Node v24.19.0 / npm 11.17.0，在 `C:\Program Files\nodejs`。
 - `package.json` 里有 `allowScripts: {"esbuild@0.25.12": true}`；`.npmrc` 里有 `audit=false`、`fund=false`、`legacy-peer-deps=true`。
 - `vite.config.ts` 开了 `server.watch.usePolling: true, interval: 400` —— 某些编辑器保存时会短暂锁定临时文件，原生 watcher 会 `EBUSY` 崩溃。
@@ -223,8 +223,8 @@ node .review/scratch/probe-sync-exit.mjs http://127.0.0.1:4173/   # Scene 07 退
 
 ## 7. Git 现状与提交规则
 
-- **仓库已初始化**（此前不存在）。默认分支 `main`，结项时共 **13 次提交**（自 `47fbe93` 首发至末次结项文档提交）：Scene 04 节奏从 `f09f49a`（锚定舞台）到 `70f03a3`（中间页双倍）共六次改动；其间 Scene 07 拍点与 Scene 04 收束句（`fe92e69`）、演示案例换新（`67f2969`）、Scene 01 三轮（`a218b6f` / `af6f99d` / `ea6a421`）。完整列表看 `git log --oneline`。
-- **没有任何 remote，从未 push**。远端约定见 `DEPLOY.md`：`https://github.com/a161858970-ux/Daymark`。**没有明确推送规则时不要擅自 push。**
+- 默认分支 `main`。结项时共 **13 次提交**（自 `47fbe93` 首发至 `70f03a3`；Scene 04 节奏从 `f09f49a`（锚定舞台）到 `70f03a3`（中间页双倍）共六次改动、Scene 07 拍点与 Scene 04 收束句 `fe92e69`、演示案例换新 `67f2969`、Scene 01 三轮 `a218b6f`/`af6f99d`/`ea6a421`）；此后验收修订轮与上线工作继续提交——完整列表看 `git log --oneline`。
+- **远端 = `https://github.com/violetsnowl/daymark-website`（私人仓库，2026-10-11 已推送）**；Cloudflare Workers 项目 `daymark-website` 连仓，**push 到 `main` 自动重建上线**（生产 `daymark.top`）。这是既定工作流；push 前仍保持常规检查（构建 / checks / 无敏感文件）。
 - 提交信息用中文，遵循 conventional 风格：首行 `type(scope): 摘要`，正文说明范围、关键机制与验证结果。
 - `.gitignore` 忽略 `node_modules`、`dist`、`.env*`、编辑器目录，以及 `.review/` 下的产物（`*.png` / `*.json` / `*.log` / `chrome-profile*`，**任意深度**）。**脚本保留、产物不提交** —— `.review/` 下的验证脚本是有价值的项目资产，改产品时应与代码一起提交。
 - `.gitattributes` 把仓库内换行符固定为 LF（`* text=auto eol=lf`）。工作区在 Windows 上本来就是全部 LF，但 Git 默认 `core.autocrlf=true` 会在检出时改写文件、给下一位接手者制造整文件级 diff，所以显式钉住。二进制资产标记为 `binary`，`package-lock.json` 标为生成物、不参与 diff。
@@ -255,15 +255,15 @@ node .review/scratch/probe-sync-exit.mjs http://127.0.0.1:4173/   # Scene 07 退
 
 | 事项 | 说明 |
 |---|---|
-| **远端仓库与首次推送** | 本地已有 13 次提交（`git log` 可见全程），但**没有 remote**。推送目标与时机由你决定 |
-| 域名与部署 | `DEPLOY.md` 已写好，等你按顺序操作；期间 `api.daymark.top` 的解析记录必须先照抄到 Cloudflare 再改 NS，否则 API 会断 |
+| ~~远端仓库与首次推送~~ | **已解决（2026-10-11）**：已推送 `violetsnowl/daymark-website`（私人仓库，Cloudflare 连仓自动部署） |
+| ~~域名与部署~~ | **已完成（2026-10-12 上线）**：见 `DEPLOY.md` §8 / `REVIEW.md` §0K；后续为下载页与 Web 版 |
 | 品牌资产 | `public/favicon.svg` 是按品牌标记几何重绘的矢量版本；Logo 用的是产品 App 既有标记几何。若存在正式矢量资产，应替换 |
 | 英文文案 V2 | 当前是独立撰写的第一版，锁定前需要一轮语言润色 |
 | Scene 03 备注 | Scene 03（Context）在 Stage D 结论里被归入"通过、保持现状"，其逐项到场参数在本轮**未改动** |
 
 ### 9.2 已知风险
 
-1. **没有远端、从未 push** —— 本地已有 13 次提交与完整文档，但硬盘故障仍会带走全部内容。建议尽快接上远端（远端约定见 `DEPLOY.md`）。
+1. ~~没有远端、从未 push~~ —— **已解决（2026-10-11）**：已推送 `violetsnowl/daymark-website` 并接通 Cloudflare 连仓自动部署。
 2. **`<1024px` 的 tablet motion 尚未评审** —— 已知那里 sticky 关闭、Scene 04 退化为顺序排列，但 768–1024 区间的动效节奏没有专门看过。用户已明确排期到整页验收之后。
 3. **两处"成对参数"**：Scene 04 的 `.views-stage` 高度 ↔ `ViewsScene.tsx` 的窗口（窗口现在锚在舞台；两条节奏断言守着钉住与释放两个端点，但舞台高度本身仍要成对改）；Scene 07 的 `.scene-sync` 尾部空间 ↔ 其 `leadIn`。改一处必须改另一处，两边都有交叉注释。
 4. **`checks.mjs` 依赖页面总长度**：Scene 07/08 靠后的场景在测试视口下可能滚不到自己的终点。判断"是否完成"请用 `probe-page-end.mjs`（六视口），不要用 `checks.mjs` 里的固定偏移推断。

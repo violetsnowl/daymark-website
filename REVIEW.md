@@ -351,6 +351,25 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 
 ---
 
+## 0K. 上线部署记录（2026-10-12）
+
+**结果**：官网已正式上线 `https://daymark.top`（NS 已切 Cloudflare；官网 / www 跳转 / api 全链路验证全绿）。
+
+**执行时间线**
+1. 10-11：Workers 项目 `daymark-website` 部署完成（预览 `daymark-website.a161858970.workers.dev`）；GitHub 私人仓库 `violetsnowl/daymark-website` 接通，push 自动重建。CF 侧准备：扫描记录中 `api` 保持灰云（DNS only）；清理注册商停放记录（最终仅保留 `api`）；Workers **Custom domain** 绑定 `daymark.top`（曾两次报 `already has externally managed DNS records`——清掉对应记录后成功，属预期路径）。
+2. 10-12：`www` 处理——DNS 建占位记录 `www → 192.0.2.1`（橙云）+ Redirect Rules 官方模板 “Redirect from WWW to root”（`https://www.*` → `https://${1}`，301，状态 Active）。
+3. 10-12：NameSilo 完成 NS 切换 → `curt.ns.cloudflare.com` / `sydney.ns.cloudflare.com`。
+
+**上线验证（1.1.1.1 DoH + 直连实测，全过）**
+- NS → CF；`daymark.top` A → 104.21.59.135 / 172.67.177.235；`api.daymark.top` A → 206.187.209.142（保持）。
+- `https://daymark.top/` 200（标题「拾序 Daymark｜课程与事项管理」；bundle `/assets/index-tNLelGpL.js` 含新页脚句与末页句）；`/en/` 200；未知路径 SPA 回退 200。
+- `www.daymark.top/verify-www?x=1` → 301 → `https://daymark.top/verify-www?x=1`（路径与查询串保留）。
+- api：`/api/v1/health` 200；`/api/v1/items` 401（鉴权正常）；`/update/latest.json` 200（0.2.2；win exe 镜像直链 200，安卓资产经 GitHub 302 有效）；`/update/app-universal-release.apk` 200（≈29.7MB 永久别名）。
+
+**待办（后续在本节追加）**：`Always Use HTTPS` 开关（2026-10-12 实测 http 仍 200，待用户后台开启后复验）；下载页 `/download/`（设备识别 + 网页版第三格预留）；`app.daymark.top` 待 Web 版就绪后接入。
+
+---
+
 ## 1. 怎么跑起来
 
 ```powershell

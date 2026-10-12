@@ -178,7 +178,7 @@ git push -u origin main
 
 1. 进入该项目 → **Settings** → **Domains & Routes** → **Add** → **Custom domain**（旧版 Pages 界面写作 Custom domains）。
 2. 输入 `daymark.top`，确认。因为域名已经托管在同一个 Cloudflare 账号里，它会自动添加解析记录。
-3. 再加一条 `www.daymark.top`（可选，之后按第 2.4 节做成跳转）。
+3. `www.daymark.top` 的处理（2026-10-12 的最终实际做法）：DNS 建一条 `www` → `192.0.2.1` 的 A 记录（占位地址，**橙色云 Proxied**），再用 **Rules → Redirect Rules** 的官方模板 **“Redirect from WWW to root”**（`https://www.*` → `https://${1}`，301，Preserve query string 用模板默认值）——效果与 §2.4 的手写规则等效，路径与查询串都会保留，做法更省事。
 4. 等状态变成 **Active**，访问 <https://daymark.top/> 应该就能看到官网了。
 
 ### 4.3 以后的更新方式
@@ -213,7 +213,7 @@ Daymark Web App 是另一个项目。两种常见做法：
 ## 6. 上线前建议做的检查
 
 - [ ] `https://daymark.top/` 是中文，`https://daymark.top/en/` 是英文，语言开关能来回切。
-- [ ] `http://daymark.top` 会自动跳到 `https://`（Cloudflare 默认开启 **Always Use HTTPS**，在 SSL/TLS → Edge Certificates 里确认）。
+- [ ] `http://daymark.top` 会自动跳到 `https://`（在 SSL/TLS → Edge Certificates 开启 **Always Use HTTPS**；2026-10-12 实测尚未开启——非默认必开项，开启后复验）。
 - [ ] `www.daymark.top` 301 到 `daymark.top`。
 - [ ] `https://daymark.top/robots.txt` 和 `/sitemap.xml` 能打开。
 - [ ] `api.daymark.top` 仍然正常（这条最容易被忘记）。
@@ -241,3 +241,21 @@ Cloudflare 免费版没有中国大陆节点，国内访问可能不稳定。先
 
 **Q：会不会影响我给 AI 用的那些密钥？**
 官网是纯静态站点，不含任何服务端逻辑，也不持有任何密钥；展示用的产品界面全部是本地假数据，不联网、不写库、不调用模型。你的密钥只应该待在后端（W0 §25）。
+
+---
+
+## 8. 执行记录（2026-10-11 → 2026-10-12，本次实际完成）
+
+> 本节记录本次真实上线过程与结果，供日后对照；步骤定义仍以上文为准。
+
+| 环节 | 实际值 / 结果 |
+|---|---|
+| Workers 项目 | `daymark-website`，连 GitHub 私人仓库 `violetsnowl/daymark-website`（push 自动重建） |
+| 预览地址 | `https://daymark-website.a161858970.workers.dev`（保留可用） |
+| 正式域名 | `daymark.top` → Workers Custom domain（绑定时报过 `already has externally managed DNS records`，清掉 `@` 上的停放记录后重试成功——属预期路径） |
+| www | `www` A `192.0.2.1`（橙云占位）+ Redirect Rules 模板 “Redirect from WWW to root”（301；路径与查询串保留） |
+| NS | NameSilo 已把 3 条 `NS*.DNSOWL.COM` 换成 `curt.ns.cloudflare.com` / `sydney.ns.cloudflare.com` |
+| api | `api.daymark.top` A `206.187.209.142`（灰云 DNS only，保持不动） |
+| 验证（2026-10-12，1.1.1.1 DoH + 直连） | 官网 200 / `/en/` 200 / SPA 回退 200 / www 301 / api health 200 / items 401 / latest.json 200 / APK 别名 200 —— 全过 |
+
+**遗留**：`Always Use HTTPS` 尚待开启（见 §6）；下载页 `/download/` 与 `app.daymark.top`（Web 版）为后续工作。
