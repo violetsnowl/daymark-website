@@ -2,7 +2,7 @@
 
 **阶段**：W4 Stage C（已验收）+ **Stage D（已验收，Scene 06 按要求修订）** + **Stage E（A Day / Closing / 完整 Footer）**
 **W3 Prototype Baseline**：已按裁决锁定
-**状态**：首页十节全部实现，自动化验证 **92/92 通过**（含 2026-10-11 设计审查修复轮 §0H 与验收期内容修订 §0I）。**官网已部署上线**：Cloudflare Workers 预览地址 `https://daymark-website.a161858970.workers.dev`（push 自动重建，流程见 DEPLOY.md）；`daymark.top` 正式域名绑定与 NS 切换待窗口期。**整页视觉验收进行中。**（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
+**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **104/104 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
 **审计约定**：本文件是项目的总审计——每轮改动后把最新情况、问题与实测写进对应小节；§0 是当前生效参数，§0B–§0J 保留各轮修复过程。
 
 ---
@@ -378,8 +378,9 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 - **设备识别**：「为你的设备推荐」徽标 + 卡面材质差异（更亮的表面、更实的描边）承担推荐语义；iPhone 等无对应版本时不标注；徽标带轻浮现动效。
 - **卡片光效**（参考 ReactBits BorderGlow 思路改编）：conic 方向锥指向鼠标 + 边缘接近度驱动 + 2px 定向光带 + 三层外光帘 + 内侧浸润；**三卡共用**（hover 是卡片本身的交互语言）；品牌绿单色；触屏与 reduced-motion 保持静态。
 - **网页版入口**：与另两卡统一样式，按钮 → `app.daymark.top`（Web 版上线即接通）。
+- **顶栏 CTA 换挡**：在下载页上，顶栏右上角由「进入 Daymark」换成「**回到首页**」（消除桥接期 app→download 自环；EN 为 "Back to home"；移动菜单内同步）。
 - **元数据**：页面级 title/description/canonical/hreflang；sitemap 双语条目。
-- **验证**：断言 **103/103**（11 条下载页断言：三卡入口 / 链接来源 / 三态 UA / 无横向溢出 / EN / reduced-motion）；光效像素级复核；上线后外网复核（`/download/`、`/en/download/` 200；bundle 与本地一致；sitemap 含目录）。真机视图复核：桌面 = Windows 徽标、390 安卓 UA = 安卓徽标、EN 文案正确。
+- **验证**：断言 **104/104**（12 条下载页断言：三卡入口 / 链接来源 / 三态 UA / 无横向溢出 / EN / reduced-motion / CTA 换挡）；光效像素级复核；上线后外网复核（`/download/`、`/en/download/` 200；bundle 与本地一致；sitemap 含目录）。真机视图复核：桌面 = Windows 徽标、390 安卓 UA = 安卓徽标、EN 文案正确。
 
 **过程中修掉**：① `mask` 会把盒子之外的 paint 裁掉——外光帘（box-shadow）曾被整层裁没 → 外光帘不挂遮罩；② recommended 卡的光环覆盖层曾硬编码 raised surface → 引入 `--card-surface` 按卡区分。
 
@@ -479,7 +480,7 @@ W4 §2 要求同一个 `周五交高等数学第二次作业` 贯穿全程。这
 
 ## 6. 验证结果
 
-### 6.1 浏览器行为断言：**72/72 通过**（Stage C 时；当前总数 **92**，见 §0H）（生产构建）
+### 6.1 浏览器行为断言：**72/72 通过**（Stage C 时；当前总数 **104**，见 §0H/§0L）（生产构建）
 
 在 `dist/` 上运行 `node .review/checks.mjs http://127.0.0.1:4173/`。
 

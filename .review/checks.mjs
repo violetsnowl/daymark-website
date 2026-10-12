@@ -1788,6 +1788,19 @@ try {
     `actions=${downloadPage.totalActions} webHref=${downloadPage.webHref}`,
   );
 
+  const navCta = await evaluate(
+    client,
+    `(() => ({
+      label: document.querySelector('.site-nav-cta')?.textContent ?? '',
+      href: document.querySelector('.site-nav-cta')?.getAttribute('href') ?? '',
+    }))()`,
+  );
+  check(
+    "the download page swaps the app CTA for a way home (no self-referential link)",
+    navCta.label.includes("回到首页") && navCta.href === "/",
+    JSON.stringify(navCta),
+  );
+
   /* Device marks: an Android UA and a Windows UA each light the right card; an
      iPhone gets no mark at all — the hint never fires for a device we cannot
      serve. */

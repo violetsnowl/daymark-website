@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useLocale } from "../../app/LocaleProvider.tsx";
 import { useReducedMotion } from "../../motion/index.ts";
 import { BrandMark } from "./BrandMark.tsx";
@@ -10,6 +10,11 @@ import { PrimaryButton } from "./Buttons.tsx";
 export function SiteNav() {
   const { copy, href } = useLocale();
   const reducedMotion = useReducedMotion();
+  const { pathname } = useLocation();
+  /** On the download page the app CTA would point back at the page itself
+   *  (app.daymark.top loops here until the web build ships), so the top
+   *  action becomes the way home instead. */
+  const onDownloadPage = pathname.includes("/download");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -89,14 +94,20 @@ export function SiteNav() {
 
         <div className="site-nav-actions">
           <LanguageSwitch className="site-nav-language" />
-          <PrimaryButton
-            to="https://app.daymark.top"
-            external
-            size="small"
-            className="site-nav-cta"
-          >
-            {copy.nav.enterApp}
-          </PrimaryButton>
+          {onDownloadPage ? (
+            <PrimaryButton to={href("/")} size="small" className="site-nav-cta">
+              {copy.nav.backHome}
+            </PrimaryButton>
+          ) : (
+            <PrimaryButton
+              to="https://app.daymark.top"
+              external
+              size="small"
+              className="site-nav-cta"
+            >
+              {copy.nav.enterApp}
+            </PrimaryButton>
+          )}
           <button
             ref={triggerRef}
             type="button"
@@ -134,9 +145,13 @@ export function SiteNav() {
           </nav>
           <div className="site-menu-foot">
             <LanguageSwitch />
-            <PrimaryButton to="https://app.daymark.top" external>
-              {copy.nav.enterApp}
-            </PrimaryButton>
+            {onDownloadPage ? (
+              <PrimaryButton to={href("/")}>{copy.nav.backHome}</PrimaryButton>
+            ) : (
+              <PrimaryButton to="https://app.daymark.top" external>
+                {copy.nav.enterApp}
+              </PrimaryButton>
+            )}
           </div>
         </div>
       ) : null}

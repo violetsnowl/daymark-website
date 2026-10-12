@@ -25,6 +25,8 @@ export interface NavCopy {
   menuOpen: string;
   menuClose: string;
   enterApp: string;
+  /** Shown in place of the app CTA where that CTA would loop (download page). */
+  backHome: string;
 }
 
 export interface HeroItemCopy {

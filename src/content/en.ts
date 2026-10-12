@@ -43,6 +43,7 @@ export const en = {
     menuOpen: "Open menu",
     menuClose: "Close menu",
     enterApp: "Open Daymark",
+    backHome: "Back to home",
   },
 
   hero: {

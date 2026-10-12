@@ -43,6 +43,7 @@ export const cn = {
     menuOpen: "打开菜单",
     menuClose: "关闭菜单",
     enterApp: "进入 Daymark",
+    backHome: "回到首页",
   },
 
   hero: {
