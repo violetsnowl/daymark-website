@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "../app/LocaleProvider.tsx";
 import { SiteFooter } from "../components/site/SiteFooter.tsx";
 import { downloadConfig } from "../content/config.ts";
+import { useReducedMotion } from "../motion/index.ts";
 
 type Platform = "android" | "windows" | null;
 
@@ -37,6 +38,7 @@ interface ReleaseInfo {
 export function DownloadPage() {
   const { copy } = useLocale();
   const d = copy.download;
+  const reducedMotion = useReducedMotion();
 
   const [platform, setPlatform] = useState<Platform>(null);
   const [release, setRelease] = useState<ReleaseInfo | null>(null);
@@ -79,6 +81,30 @@ export function DownloadPage() {
     };
   }, []);
 
+  /* The green line on the recommended card rides its border, following the
+     pointer along the nearest edge. Plain pointer math onto the element's own
+     custom properties — no state, no re-render. Mouse-only, and disabled under
+     reduced motion (the chip carries the meaning in both cases). */
+  const handleCardGlow = (event: React.PointerEvent<HTMLLIElement>) => {
+    if (event.pointerType !== "mouse") return;
+    const el = event.currentTarget;
+    const rect = el.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    /* Project the pointer onto the nearest edge so the glow segment hugs the
+       border instead of floating in the middle of the card. */
+    const toLeft = x;
+    const toRight = rect.width - x;
+    const toTop = y;
+    const toBottom = rect.height - y;
+    const nearest = Math.min(toLeft, toRight, toTop, toBottom);
+    const gx = nearest === toLeft ? 0 : nearest === toRight ? rect.width : x;
+    const gy = nearest === toTop ? 0 : nearest === toBottom ? rect.height : y;
+    el.style.setProperty("--glow-x", `${gx.toFixed(1)}px`);
+    el.style.setProperty("--glow-y", `${gy.toFixed(1)}px`);
+  };
+
   const windowsHref = release?.windowsUrl ?? downloadConfig.windowsFallback;
   const versionLine = release?.version ? `${d.currentVersion} v${release.version}` : null;
 
@@ -97,6 +123,9 @@ export function DownloadPage() {
             <li
               className={`download-card${platform === "android" ? " is-recommended" : ""}`}
               data-platform="android"
+              onPointerMove={
+                platform === "android" && !reducedMotion ? handleCardGlow : undefined
+              }
             >
               {platform === "android" ? (
                 <p className="download-recommended">{d.recommended}</p>
@@ -118,6 +147,9 @@ export function DownloadPage() {
             <li
               className={`download-card${platform === "windows" ? " is-recommended" : ""}`}
               data-platform="windows"
+              onPointerMove={
+                platform === "windows" && !reducedMotion ? handleCardGlow : undefined
+              }
             >
               {platform === "windows" ? (
                 <p className="download-recommended">{d.recommended}</p>

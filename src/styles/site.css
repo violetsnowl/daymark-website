@@ -2517,11 +2517,46 @@
   animation-delay: 140ms;
 }
 
-/* The mark matching the visitor's device: a hint, not a gate — it changes the
-   card's border and adds one quiet chip, and nothing else on the page. */
+/* The mark matching the visitor's device: a hint, not a gate. A quiet material
+   difference (raised surface, a slightly firmer border) plus one chip — and,
+   on pointer devices, a green line that rides the card's border and follows
+   the pointer along the nearest edge (the element sets --glow-x/--glow-y in
+   px from its own pointermove handler). Touch devices and reduced motion keep
+   the static state; the chip still carries the meaning there. */
 .download-card.is-recommended {
-  border-color: var(--accent);
+  border-color: var(--line-strong);
   background: var(--surface-raised);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .download-card.is-recommended::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: radial-gradient(
+      160px 160px at var(--glow-x, 50%) var(--glow-y, 0px),
+      rgb(49 86 74 / 92%),
+      rgb(49 86 74 / 34%) 46%,
+      transparent 74%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--motion-panel) var(--ease-out);
+    pointer-events: none;
+  }
+
+  .download-card.is-recommended:hover::after {
+    opacity: 1;
+  }
 }
 
 .download-recommended {
