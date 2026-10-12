@@ -1445,7 +1445,7 @@ try {
         title: scene.querySelector('.closing-title')?.textContent ?? null,
         subcopy: scene.querySelector('.closing-subcopy')?.textContent ?? null,
         cta: cta?.textContent?.trim() ?? null,
-        ctaIsExternal: cta?.getAttribute('href') === 'https://app.daymark.top',
+        ctaToDownload: cta?.getAttribute('href') === '/download/',
         back: back?.textContent?.trim() ?? null,
         backResolves: Boolean(document.querySelector(back?.getAttribute('href') ?? '')),
         /* W4 §9.3: no feature list or product surface in the closing scene. */
@@ -1458,11 +1458,13 @@ try {
           ? Array.from(footer.querySelectorAll('a')).every((a) => {
               const href = a.getAttribute('href') ?? '';
               if (href.startsWith('http') || href.startsWith('mailto:')) return true;
+              /* The only non-anchor internal link is the download page — its
+                 destination is asserted at the CTA checks below. */
+              if (!href.includes('#')) return href === '/download/' || href === '/en/download/';
               /* Same-document anchors appear as "#x" or "/#x" depending on whether
                  the link was built from a route prefix; only the fragment matters,
                  and a raw "/#x" is not a valid selector. */
-              const hash = href.includes('#') ? '#' + href.split('#')[1] : null;
-              return hash ? Boolean(document.querySelector(hash)) : false;
+              return Boolean(document.querySelector('#' + href.split('#')[1]));
             })
           : false,
       };
@@ -1472,7 +1474,7 @@ try {
     "the closing scene is a name, a line and an action",
     String(ending.title).includes("交给拾序") &&
       String(ending.subcopy).includes("下一件小事") &&
-      ending.ctaIsExternal === true &&
+      ending.ctaToDownload === true &&
       ending.hasFeatureList === false,
     `title=${ending.title} · subcopy=${ending.subcopy} · cta=${ending.cta} · ` +
       `featureList=${ending.hasFeatureList}`,
@@ -1551,6 +1553,7 @@ try {
       title: document.title,
       h1: document.querySelector('h1')?.textContent ?? null,
       cta: document.querySelector('.site-nav-cta')?.textContent ?? null,
+      ctaHref: document.querySelector('.site-nav-cta')?.getAttribute('href') ?? null,
       stored: localStorage.getItem('daymark-language'),
       canonical: document.querySelector('link[rel="canonical"]')?.href ?? null,
       hasChineseBody: /[\\u4e00-\\u9fff]/.test(
@@ -1562,7 +1565,11 @@ try {
   check("html lang follows the route", english.lang === "en", english.lang);
   check("English metadata", english.title.startsWith("Daymark"), english.title);
   check("English headline", /Put the small things/.test(String(english.h1)), String(english.h1));
-  check("English CTA label", String(english.cta).includes("Open Daymark"), String(english.cta));
+  check(
+    "English CTA label leads to the download page",
+    String(english.cta).includes("Open Daymark") && english.ctaHref === "/en/download/",
+    `${english.cta} → ${english.ctaHref}`,
+  );
   check("language choice persists", english.stored === "en", String(english.stored));
   check("English canonical", String(english.canonical).includes("/en/"), String(english.canonical));
 

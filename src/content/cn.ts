@@ -259,7 +259,7 @@ export const cn = {
         title: "产品",
         links: [
           { label: "怎么工作", href: "#capture" },
-          { label: "开始使用", href: "https://app.daymark.top", external: true },
+          { label: "开始使用", href: "download/" },
         ],
       },
       {

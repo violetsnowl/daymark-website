@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
-import { useCopy } from "../../app/LocaleProvider.tsx";
+import { useLocale } from "../../app/LocaleProvider.tsx";
 import { showcase, showcaseStrings } from "../../content/demo.ts";
-import { appUrl } from "../../content/config.ts";
 import { DESKTOP_QUERY, useMediaQuery, useReducedMotion } from "../../motion/index.ts";
 import { AnchorButton, PrimaryButton } from "../site/Buttons.tsx";
 import {
@@ -18,7 +17,7 @@ import {
  * lower right, a single ambient light field behind it. Nothing else (W1 §2.2).
  */
 export function HeroScene() {
-  const copy = useCopy();
+  const { copy, href } = useLocale();
   const demo = showcaseStrings[copy.locale];
   const items = showcase[copy.locale].heroItems;
   const reducedMotion = useReducedMotion();
@@ -107,7 +106,7 @@ export function HeroScene() {
           </h1>
           <p className="lead hero-description">{copy.hero.description}</p>
           <div className="hero-actions">
-            <PrimaryButton to={appUrl} external>
+            <PrimaryButton to={href("/download/")}>
               {copy.hero.primaryCta}
             </PrimaryButton>
             <AnchorButton href="#capture" trailing={<span aria-hidden="true">↓</span>}>

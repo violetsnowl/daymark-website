@@ -264,7 +264,7 @@ export const en = {
         title: "Product",
         links: [
           { label: "How it works", href: "#capture" },
-          { label: "Start using", href: "https://app.daymark.top", external: true },
+          { label: "Start using", href: "download/" },
         ],
       },
       {

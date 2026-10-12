@@ -11,9 +11,8 @@ export function SiteNav() {
   const { copy, href } = useLocale();
   const reducedMotion = useReducedMotion();
   const { pathname } = useLocation();
-  /** On the download page the app CTA would point back at the page itself
-   *  (app.daymark.top loops here until the web build ships), so the top
-   *  action becomes the way home instead. */
+  /** On the download page the CTA would point back at the page itself
+   *  (it leads to /download/), so the top action becomes the way home. */
   const onDownloadPage = pathname.includes("/download");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -99,12 +98,7 @@ export function SiteNav() {
               {copy.nav.backHome}
             </PrimaryButton>
           ) : (
-            <PrimaryButton
-              to="https://app.daymark.top"
-              external
-              size="small"
-              className="site-nav-cta"
-            >
+            <PrimaryButton to={href("/download/")} size="small" className="site-nav-cta">
               {copy.nav.enterApp}
             </PrimaryButton>
           )}
@@ -148,7 +142,7 @@ export function SiteNav() {
             {onDownloadPage ? (
               <PrimaryButton to={href("/")}>{copy.nav.backHome}</PrimaryButton>
             ) : (
-              <PrimaryButton to="https://app.daymark.top" external>
+              <PrimaryButton to={href("/download/")}>
                 {copy.nav.enterApp}
               </PrimaryButton>
             )}

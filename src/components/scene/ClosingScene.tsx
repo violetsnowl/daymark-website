@@ -1,4 +1,4 @@
-import { useCopy } from "../../app/LocaleProvider.tsx";
+import { useLocale } from "../../app/LocaleProvider.tsx";
 import { AnchorButton, PrimaryButton } from "../site/Buttons.tsx";
 
 /**
@@ -13,7 +13,7 @@ import { AnchorButton, PrimaryButton } from "../site/Buttons.tsx";
  * is nowhere further to go.
  */
 export function ClosingScene() {
-  const copy = useCopy();
+  const { copy, href } = useLocale();
 
   return (
     <section id="closing" className="scene scene-closing-final" aria-labelledby="closing-title">
@@ -30,7 +30,7 @@ export function ClosingScene() {
         <p className="closing-subcopy">{copy.closing.subcopy}</p>
 
         <div className="closing-actions">
-          <PrimaryButton to="https://app.daymark.top" external>
+          <PrimaryButton to={href("/download/")}>
             {copy.closing.cta}
           </PrimaryButton>
           <AnchorButton href={copy.closing.backTarget} variant="quiet">
