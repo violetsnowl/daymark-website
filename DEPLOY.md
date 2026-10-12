@@ -213,7 +213,7 @@ Daymark Web App 是另一个项目。两种常见做法：
 ## 6. 上线前建议做的检查
 
 - [ ] `https://daymark.top/` 是中文，`https://daymark.top/en/` 是英文，语言开关能来回切。
-- [ ] `http://daymark.top` 会自动跳到 `https://`（在 SSL/TLS → Edge Certificates 开启 **Always Use HTTPS**；2026-10-12 实测尚未开启——非默认必开项，开启后复验）。
+- [x] `http://daymark.top` 会自动跳到 `https://`（**Always Use HTTPS** 已于 2026-10-12 开启并复验：http 301 → https；www 两级 301；api 的 http 由 Caddy 自行 308）。
 - [ ] `www.daymark.top` 301 到 `daymark.top`。
 - [ ] `https://daymark.top/robots.txt` 和 `/sitemap.xml` 能打开。
 - [ ] `api.daymark.top` 仍然正常（这条最容易被忘记）。

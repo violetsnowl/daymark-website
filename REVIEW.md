@@ -366,7 +366,7 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 - `www.daymark.top/verify-www?x=1` → 301 → `https://daymark.top/verify-www?x=1`（路径与查询串保留）。
 - api：`/api/v1/health` 200；`/api/v1/items` 401（鉴权正常）；`/update/latest.json` 200（0.2.2；win exe 镜像直链 200，安卓资产经 GitHub 302 有效）；`/update/app-universal-release.apk` 200（≈29.7MB 永久别名）。
 
-**待办（后续在本节追加）**：`Always Use HTTPS` 开关（2026-10-12 实测 http 仍 200，待用户后台开启后复验）；下载页 `/download/`（设备识别 + 网页版第三格预留）；`app.daymark.top` 待 Web 版就绪后接入。
+**待办（后续在本节追加）**：`Always Use HTTPS` 已开启并复验（2026-10-12：`http://daymark.top/` 301 → https；`http://www.daymark.top/…` 两级 301 至 `https://daymark.top/…`，路径与查询串保留；api 的 http 由 Caddy 自行 308 跳 https）；下载页 `/download/`（设备识别 + 网页版第三格预留）；`app.daymark.top` 待 Web 版就绪后接入。
 
 ---
 
