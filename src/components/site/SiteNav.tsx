@@ -99,7 +99,7 @@ export function SiteNav() {
             onClick={() => setMenuOpen((open) => !open)}
           >
             <span aria-hidden="true" className="menu-glyph" />
-            {copy.nav.menuOpen}
+            {menuOpen ? copy.nav.menuClose : copy.nav.menuOpen}
           </button>
         </div>
       </div>

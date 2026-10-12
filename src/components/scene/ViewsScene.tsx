@@ -31,7 +31,7 @@ const VIEW_ORDER: PlanView[] = ["overview", "courses", "calendar"];
 /** The pinned travel reads as **1 : 2 : 1 quarters** — overview, courses,
  *  calendar. The crossfade midpoints sit at the quarters (0.25 / 0.75), so
  *  each flank owns ~a quarter of the travel and 课程 owns ~half: entering
- *  shows 总览, leaving holds 日历, and the middle projection — which used to
+ *  shows 总览, leaving holds 日程, and the middle projection — which used to
  *  flash past as a sliver — gets twice their dwell (user trial, 2026-10-10:
  *  先设 2 倍试试). At `TRAVEL_PX` = 400 that is ~100px / 200px / 100px,
  *  ~one to two wheel clicks per page; the passage still carries the story,
@@ -44,7 +44,7 @@ const VIEW_ORDER: PlanView[] = ["overview", "courses", "calendar"];
  *  W4 §4.5 suggested band table and the earlier long travels, while keeping
  *  §4.5's actual requirement: scroll-linked values, not trigger stamps. */
 const FADE_SPAN = 0.2;
-/** Crossfade midpoints: 总览 → 课程 at 0.25, 课程 → 日历 at 0.75. */
+/** Crossfade midpoints: 总览 → 课程 at 0.25, 课程 → 日程 at 0.75. */
 const COURSE_FROM = 0.25;
 const CALENDAR_FROM = 0.75;
 

@@ -61,7 +61,7 @@ export const cn = {
   smallThings: {
     title: "真正容易忘记的，往往不是大事。",
     description:
-      "「周五交第二次作业」「明天记得带讲义资料」「老师说看第五章」「下周再交」这些事情都不大，却散落在课程、聊天、脑子和日历之间。",
+      "「周五交第二次作业」「明天记得带讲义资料」「老师说看第五章」「下周再交」这些事情都不大，却散落在课程、聊天、脑子和日程之间。",
     fragments: [
       { text: showcase.cn.fragments[0], weight: 2 },
       { text: showcase.cn.fragments[1], weight: 2 },
@@ -116,7 +116,7 @@ export const cn = {
 
   views: {
     title: "同一件事，换一个位置看。",
-    description: "总览、课程、日历，并不是三份数据，而是同一件事情的不同视角。",
+    description: "总览、课程、日程，并不是三份数据，而是同一件事情的不同视角。",
     index: "04",
     views: {
       overview: {
@@ -130,13 +130,13 @@ export const cn = {
         caption: "在课程里，它属于这门课。",
       },
       calendar: {
-        label: "日历",
+        label: "日程",
         hint: "它出现在它真正发生的那一天。",
-        caption: "在日历里，它发生在周五。",
+        caption: "在日程里，它发生在周五。",
       },
     },
     staticSummary:
-      "同一件事——高等数学 · 周五交第二次作业——在总览、课程、日历三个视角中的位置不同，但它始终是同一个事项。",
+      "同一件事——高等数学 · 周五交第二次作业——在总览、课程、日程三个视角中的位置不同，但它始终是同一个事项。",
     closing: "不是复制，是换个角度看。",
     windowLabel: (view) => `拾序产品界面示意：${view}视角下的同一个事项`,
   },
@@ -216,7 +216,7 @@ export const cn = {
 
   closing: {
     brand: demo.brandCn,
-    title: "把该记的，交给拾序",
+    title: "把该记的交给拾序",
     subcopy: "从下一件小事开始。",
     cta: "开始使用",
     back: "回到前面看看",

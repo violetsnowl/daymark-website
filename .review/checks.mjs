@@ -1654,7 +1654,7 @@ try {
     `progressAtStageTop=${reachability.progressAtStageTop} | ${bandSummary.join(" | ")}`,
   );
   /* User trial (2026-10-10): the middle projection is given **twice the dwell**
-     of each flank — 总览 and 日历 ~a quarter each, 课程 ~half. This replaces
+     of each flank — 总览 and 日程 ~a quarter each, 课程 ~half. This replaces
      the earlier equal-thirds guard. */
   check(
     "the middle projection is given twice the dwell of the others",
