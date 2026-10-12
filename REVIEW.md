@@ -379,6 +379,7 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 - **卡片光效**（参考 ReactBits BorderGlow 思路改编）：conic 方向锥指向鼠标 + 边缘接近度驱动 + 2px 定向光带 + 三层外光帘 + 内侧浸润；**三卡共用**（hover 是卡片本身的交互语言）；品牌绿单色；触屏与 reduced-motion 保持静态。
 - **网页版入口**：与另两卡统一样式，按钮 → `app.daymark.top`（Web 版上线即接通）。
 - **顶栏 CTA 换挡**：在下载页上，顶栏右上角由「进入 Daymark」换成「**回到首页**」（消除桥接期 app→download 自环；EN 为 "Back to home"；移动菜单内同步）。
+- **全站 CTA 落点回收（2026-10-12 晚）**：四处「开始使用 / 进入 Daymark / 进入拾序 / 页脚开始使用」由 app.daymark.top 改为**站内直达 `/download/`**（恢复「CTA=下载页」决策；Web 版入口由下载页的卡片承担；双语同步、断言覆盖中/英落点）。
 - **元数据**：页面级 title/description/canonical/hreflang；sitemap 双语条目。
 - **验证**：断言 **104/104**（12 条下载页断言：三卡入口 / 链接来源 / 三态 UA / 无横向溢出 / EN / reduced-motion / CTA 换挡）；光效像素级复核；上线后外网复核（`/download/`、`/en/download/` 200；bundle 与本地一致；sitemap 含目录）。真机视图复核：桌面 = Windows 徽标、390 安卓 UA = 安卓徽标、EN 文案正确。
 
