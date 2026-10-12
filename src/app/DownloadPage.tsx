@@ -81,26 +81,51 @@ export function DownloadPage() {
     };
   }, []);
 
-  /* The green line on the recommended card rides its border, following the
-     pointer along the nearest edge. Plain pointer math onto the element's own
-     custom properties — no state, no re-render. Mouse-only, and disabled under
-     reduced motion (the chip carries the meaning in both cases). */
+  /* The recommended card's glow, adapted from the BorderGlow technique: the
+     handler publishes three numbers onto the element's own custom properties
+     and the CSS does the rest — no state, no re-render.
+
+       --cursor-angle    direction from the card's centre toward the pointer
+                         (conic degrees: 0 = up, clockwise)
+       --edge-proximity  0 at the centre, 100 at the border — the glow gathers
+                         as the pointer approaches the edge
+       --glow-x/--glow-y where the centre→pointer ray meets the border, so the
+                         ring's hot spot sits on the cone's own centreline
+
+     Mouse-only, and disabled under reduced motion (the chip carries the
+     meaning in both cases). */
   const handleCardGlow = (event: React.PointerEvent<HTMLLIElement>) => {
     if (event.pointerType !== "mouse") return;
     const el = event.currentTarget;
     const rect = el.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
+
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    /* Project the pointer onto the nearest edge so the glow segment hugs the
-       border instead of floating in the middle of the card. */
-    const toLeft = x;
-    const toRight = rect.width - x;
-    const toTop = y;
-    const toBottom = rect.height - y;
-    const nearest = Math.min(toLeft, toRight, toTop, toBottom);
-    const gx = nearest === toLeft ? 0 : nearest === toRight ? rect.width : x;
-    const gy = nearest === toTop ? 0 : nearest === toBottom ? rect.height : y;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const dx = x - cx;
+    const dy = y - cy;
+
+    const angle = ((Math.atan2(dy, dx) * 180) / Math.PI + 90 + 360) % 360;
+    el.style.setProperty("--cursor-angle", `${angle.toFixed(2)}deg`);
+
+    const kx = dx !== 0 ? Math.abs(cx / dx) : Infinity;
+    const ky = dy !== 0 ? Math.abs(cy / dy) : Infinity;
+    const proximity = Math.min(Math.max(1 / Math.min(kx, ky), 0), 1) * 100;
+    el.style.setProperty("--edge-proximity", proximity.toFixed(2));
+
+    let gx = x;
+    let gy = y;
+    if (dx !== 0 || dy !== 0) {
+      const sx = dx !== 0 ? cx / Math.abs(dx) : Infinity;
+      const sy = dy !== 0 ? cy / Math.abs(dy) : Infinity;
+      const s = Math.min(sx, sy);
+      if (Number.isFinite(s)) {
+        gx = cx + dx * s;
+        gy = cy + dy * s;
+      }
+    }
     el.style.setProperty("--glow-x", `${gx.toFixed(1)}px`);
     el.style.setProperty("--glow-y", `${gy.toFixed(1)}px`);
   };

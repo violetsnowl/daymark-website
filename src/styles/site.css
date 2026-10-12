@@ -2496,6 +2496,7 @@
 
 .download-card {
   position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -2517,11 +2518,18 @@
   animation-delay: 140ms;
 }
 
-/* The mark matching the visitor's device: a hint, not a gate. A quiet material
-   difference (raised surface, a slightly firmer border) plus one chip — and,
-   on pointer devices, a green line that rides the card's border and follows
-   the pointer along the nearest edge (the element sets --glow-x/--glow-y in
-   px from its own pointermove handler). Touch devices and reduced motion keep
+/* The device mark: a hint, not a gate. A quiet material difference (raised
+   surface, a slightly firmer border) plus one chip — and, on pointer devices,
+   a directional glow adapted from the BorderGlow idea (mesh along the border,
+   a cone aimed at the pointer, light that gathers as you approach the edge),
+   rendered here in the site's own palette: one green family, no rainbow.
+
+   The card's pointermove handler publishes three values:
+
+     --cursor-angle    direction from the card's centre toward the pointer
+     --edge-proximity  0 at the centre, 100 at the border
+
+   and the two layers below read them. Touch devices and reduced motion keep
    the static state; the chip still carries the meaning there. */
 .download-card.is-recommended {
   border-color: var(--line-strong);
@@ -2529,33 +2537,78 @@
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .download-card.is-recommended::before,
   .download-card.is-recommended::after {
     content: "";
     position: absolute;
-    inset: -1px;
     border-radius: inherit;
-    padding: 1.5px;
-    background: radial-gradient(
-      160px 160px at var(--glow-x, 50%) var(--glow-y, 0px),
-      rgb(49 86 74 / 92%),
-      rgb(49 86 74 / 34%) 46%,
-      transparent 74%
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity var(--motion-panel) var(--ease-out);
     pointer-events: none;
+    z-index: -1;
+    opacity: 0;
+    /* The light glides out slower than it arrives. */
+    transition: opacity 640ms var(--ease-in-out);
+  }
+
+  /* Layer 1 — the ring, and the light it spills into the card. The interior
+     is covered by the card's own surface colour so the gradient reads only
+     along the border; the cone mask keeps it facing the pointer. The ring is
+     drawn 2px wide (the card's own 1px border plus 1px beyond), because a
+     single hairline disappears against this canvas. */
+  .download-card.is-recommended::before {
+    inset: -1px;
+    border: 2px solid transparent;
+    border-radius: calc(var(--radius-large) + 1px);
+    background:
+      radial-gradient(
+        200px 140px at var(--glow-x, 50%) var(--glow-y, 0%),
+        rgb(49 86 74 / calc(var(--edge-proximity, 0) * 0.085%)),
+        transparent 68%
+      ) padding-box,
+      linear-gradient(var(--surface-raised) 0 0) padding-box,
+      radial-gradient(
+        180px 130px at var(--glow-x, 50%) var(--glow-y, 0%),
+        rgb(49 86 74 / 100%),
+        rgb(100 129 116 / 52%) 45%,
+        rgb(49 86 74 / 14%) 76%
+      ) border-box,
+      linear-gradient(rgb(49 86 74 / 22%) 0 0) border-box;
+    mask-image: conic-gradient(
+      from var(--cursor-angle, 0deg) at center,
+      black 0deg,
+      transparent 62deg,
+      transparent 298deg,
+      black 360deg
+    );
+    -webkit-mask-image: conic-gradient(
+      from var(--cursor-angle, 0deg) at center,
+      black 0deg,
+      transparent 62deg,
+      transparent 298deg,
+      black 360deg
+    );
+  }
+
+  .download-card.is-recommended:hover::before {
+    opacity: clamp(0, calc((var(--edge-proximity, 0) - 24) / 76), 1);
+    transition-duration: var(--motion-panel);
+  }
+
+  /* Layer 2 — the outer curtain: layered light just beyond the border.
+     (No cone mask here on purpose: `mask` clips everything outside the
+     element's own box, and an outer box-shadow IS outside it — masked here
+     it would never paint at all. The ring carries the direction; the
+     curtain stays even and simply gathers as the pointer nears the edge.) */
+  .download-card.is-recommended::after {
+    inset: -1px;
+    box-shadow:
+      0 0 0 1.5px rgb(49 86 74 / 38%),
+      0 0 16px 2px rgb(49 86 74 / 22%),
+      0 0 38px 10px rgb(49 86 74 / 10%);
   }
 
   .download-card.is-recommended:hover::after {
-    opacity: 1;
+    opacity: clamp(0, calc((var(--edge-proximity, 0) - 38) / 62), 0.95);
+    transition-duration: var(--motion-panel);
   }
 }
 
