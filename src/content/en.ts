@@ -264,6 +264,6 @@ export const en = {
       },
     ],
     legal: "© 2026 Daymark",
-    note: "The site is still being built, and will fill in over time.",
+    note: "Daymark is growing, and so is this page.",
   },
 } satisfies SiteCopy;

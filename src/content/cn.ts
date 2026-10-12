@@ -255,6 +255,6 @@ export const cn = {
       },
     ],
     legal: "© 2026 Daymark",
-    note: "官网仍在建设中，内容会逐步补齐。",
+    note: "拾序还在长大，这里也会。",
   },
 } satisfies SiteCopy;
