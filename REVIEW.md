@@ -366,7 +366,7 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 - `www.daymark.top/verify-www?x=1` → 301 → `https://daymark.top/verify-www?x=1`（路径与查询串保留）。
 - api：`/api/v1/health` 200；`/api/v1/items` 401（鉴权正常）；`/update/latest.json` 200（0.2.2；win exe 镜像直链 200，安卓资产经 GitHub 302 有效）；`/update/app-universal-release.apk` 200（≈29.7MB 永久别名）。
 
-**待办（后续在本节追加）**：`app.daymark.top` 跳转已配置并验证（302 → `https://daymark.top/download/`，路径丢弃、查询串保留；Web 版上线后改指本体）。下载页见 §0L；`Always Use HTTPS` 已开启并复验（http 301 → https；www 两级 301；api 由 Caddy 308）。
+**后续进展**：`app.daymark.top` 已于 2026-10-12 从跳转桥改绑为 **Web 版本体**（`daymark-app` Worker）——下载页「进入网页版」直达应用；`Always Use HTTPS` 已开启并复验；下载页见 §0L。
 
 ---
 
