@@ -186,9 +186,17 @@ export function DownloadPage() {
               </a>
             </li>
 
+            {/* The web entry leaves the page (the other two only download), so
+                it opens in its own tab — the download page, and the way back
+                to the site, stays open behind it. */}
             <li className="download-card" data-platform="web" {...glowProps}>
               <h2 className="download-card-name">{d.web.name}</h2>
-              <a className="btn btn-primary download-card-action" href={appUrl}>
+              <a
+                className="btn btn-primary download-card-action"
+                href={appUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {d.web.action}
               </a>
             </li>

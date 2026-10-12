@@ -1762,6 +1762,7 @@ try {
       windowsHref: document.querySelector('.download-card[data-platform="windows"] a')?.href ?? '',
       version: document.querySelector('.download-card-version')?.textContent ?? '',
       webHref: document.querySelector('.download-card[data-platform="web"] a')?.href ?? '',
+      webTarget: document.querySelector('.download-card[data-platform="web"] a')?.getAttribute('target') ?? '',
       totalActions: document.querySelectorAll('.download-card .download-card-action').length,
       recommended: document.querySelectorAll('.download-card.is-recommended').length,
     }))()`,
@@ -1789,10 +1790,11 @@ try {
     downloadPage.version,
   );
   check(
-    "all three entries carry an action; the web entry points at the app address",
+    "all three entries carry an action; the web entry points at the app address in a new tab",
     downloadPage.totalActions === 3 &&
-      downloadPage.webHref.startsWith("https://app.daymark.top/"),
-    `actions=${downloadPage.totalActions} webHref=${downloadPage.webHref}`,
+      downloadPage.webHref.startsWith("https://app.daymark.top/") &&
+      downloadPage.webTarget === "_blank",
+    `actions=${downloadPage.totalActions} webHref=${downloadPage.webHref} target=${downloadPage.webTarget}`,
   );
 
   const navCta = await evaluate(
