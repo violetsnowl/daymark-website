@@ -228,6 +228,35 @@ export const en = {
     backTarget: "#ideas",
   },
 
+  download: {
+    eyebrow: "Download",
+    title: "Download Daymark",
+    lead: "Leave the things worth remembering to Daymark — starting with your device.",
+    recommended: "Recommended for your device",
+    currentVersion: "Latest",
+    android: {
+      name: "Android",
+      note: "An APK package — install it and follow the system prompts.",
+      action: "Download for Android",
+    },
+    windows: {
+      name: "Windows",
+      note: "An installer (.exe) — download it, then run it.",
+      action: "Download for Windows",
+    },
+    web: {
+      name: "Web",
+      note: "Use it right in your browser — nothing to install.",
+      badge: "Coming soon",
+    },
+    footnote: "Sign in to the same account and everything stays in sync.",
+    meta: {
+      title: "Download Daymark",
+      description:
+        "Download Daymark for Windows or Android — and put the small things back where they belong.",
+    },
+  },
+
   footer: {
     brandCn: "",
     brandEn: demo.brandEn,
@@ -246,7 +275,7 @@ export const en = {
           { label: "What it is", href: "#ideas" },
           {
             label: "Changelog",
-            href: "https://github.com/a161858970-ux/Daymark/releases",
+            href: "https://github.com/violetsnowl/Daymark/releases",
             external: true,
           },
         ],
@@ -256,7 +285,7 @@ export const en = {
         links: [
           {
             label: "GitHub",
-            href: "https://github.com/a161858970-ux/Daymark",
+            href: "https://github.com/violetsnowl/Daymark",
             external: true,
           },
           { label: "Contact", href: "mailto:hello@daymark.top", external: true },

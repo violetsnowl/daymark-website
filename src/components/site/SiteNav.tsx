@@ -45,7 +45,14 @@ export function SiteNav() {
   const goToSection = useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
       const target = document.getElementById(sectionId);
-      if (!target) return;
+      if (!target) {
+        /* The sections live on the home page. From /download/ (or the 404) the
+           honest move is to go there and land on the section itself. */
+        event.preventDefault();
+        setMenuOpen(false);
+        window.location.assign(`${href("/")}#${sectionId}`);
+        return;
+      }
       event.preventDefault();
       setMenuOpen(false);
       target.scrollIntoView({
@@ -54,7 +61,7 @@ export function SiteNav() {
       });
       window.history.replaceState(null, "", `#${sectionId}`);
     },
-    [reducedMotion],
+    [reducedMotion, href],
   );
 
   return (

@@ -91,7 +91,14 @@ const evaluate = async (client, expression) => {
   return result.result.value;
 };
 
-const goTo = async (client, path, width, height, reducedMotion = false) => {
+const goTo = async (
+  client,
+  path,
+  width,
+  height,
+  reducedMotion = false,
+  readyExpression = "Boolean(document.querySelector('.hero') && document.querySelector('#capture'))",
+) => {
   await client.send("Emulation.setDeviceMetricsOverride", {
     width,
     height,
@@ -110,12 +117,10 @@ const goTo = async (client, path, width, height, reducedMotion = false) => {
      A one-shot demo on the page keeps changing its height after load, so "load
      event fired" is not the same as "the sections exist" — and on a loaded machine
      the gap is long enough for the next query to run against an empty document,
-     which then reads as a missing selector instead of as slow rendering. */
+     which then reads as a missing selector instead of as slow rendering.
+     Pages without the home sections (e.g. /download/) pass their own selector. */
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    const ready = await evaluate(
-      client,
-      `Boolean(document.querySelector('.hero') && document.querySelector('#capture'))`,
-    );
+    const ready = await evaluate(client, readyExpression);
     if (ready) break;
     await delay(150);
   }
@@ -1718,6 +1723,154 @@ try {
      assertion is made here — a jump-scrolled probe reads the scene's published
      value one measure behind, which is an artefact of driving scroll from
      script rather than anything a reader would meet. */
+
+  /* ---------- Download page (/download/), 2026-10-12 ---------- */
+  const DL_READY = "Boolean(document.querySelector('.download-page'))";
+  const UA_ANDROID =
+    "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36";
+  const UA_WINDOWS =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+  const UA_IPHONE =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1";
+  const setUserAgent = (agent, ua) =>
+    agent.send("Emulation.setUserAgentOverride", { userAgent: ua });
+
+  await goTo(client, "/download/", 1440, 900, false, DL_READY);
+  /* The version line appears once the update manifest has answered; wait for it
+     so the link assertions read the resolved state, not the static fallback. */
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const resolved = await evaluate(
+      client,
+      `Boolean(document.querySelector('.download-card-version'))`,
+    );
+    if (resolved) break;
+    await delay(300);
+  }
+  const downloadPage = await evaluate(
+    client,
+    `(() => ({
+      title: document.querySelector('.download-title')?.textContent ?? '',
+      cards: document.querySelectorAll('.download-card').length,
+      androidHref: document.querySelector('.download-card[data-platform="android"] a')?.href ?? '',
+      windowsHref: document.querySelector('.download-card[data-platform="windows"] a')?.href ?? '',
+      version: document.querySelector('.download-card-version')?.textContent ?? '',
+      webBadge: document.querySelector('.download-card-web .download-card-coming')?.textContent ?? '',
+      webLinks: document.querySelectorAll('.download-card-web a').length,
+      recommended: document.querySelectorAll('.download-card.is-recommended').length,
+    }))()`,
+  );
+  check(
+    "the download page renders three choices (at most one carries the device mark)",
+    downloadPage.title.includes("下载") &&
+      downloadPage.cards === 3 &&
+      downloadPage.recommended <= 1,
+    JSON.stringify(downloadPage),
+  );
+  check(
+    "the Android download points at the permanent mirror alias",
+    downloadPage.androidHref === "https://api.daymark.top/update/app-universal-release.apk",
+    downloadPage.androidHref,
+  );
+  check(
+    "the Windows download resolves to the latest build from the manifest",
+    /^https:\/\/api\.daymark\.top\/update\/daymark_[\w.-]+\.exe$/.test(downloadPage.windowsHref),
+    downloadPage.windowsHref,
+  );
+  check(
+    "the version line reflects the manifest",
+    /^最新版本 v\d+\.\d+\.\d+$/.test(downloadPage.version),
+    downloadPage.version,
+  );
+  check(
+    "the web option is present, marked as upcoming, and carries no dead link",
+    downloadPage.webBadge.length > 0 && downloadPage.webLinks === 0,
+    `badge="${downloadPage.webBadge}" links=${downloadPage.webLinks}`,
+  );
+
+  /* Device marks: an Android UA and a Windows UA each light the right card; an
+     iPhone gets no mark at all — the hint never fires for a device we cannot
+     serve. */
+  await setUserAgent(client, UA_ANDROID);
+  await goTo(client, "/download/", 390, 844, false, DL_READY);
+  const androidMark = await evaluate(
+    client,
+    `(() => ({
+      marked: document.querySelector('.download-card.is-recommended')?.dataset.platform ?? 'none',
+      chip: document.querySelector('.download-card.is-recommended .download-recommended')?.textContent ?? '',
+    }))()`,
+  );
+  check(
+    "an Android visitor sees the mark on the Android card",
+    androidMark.marked === "android" && androidMark.chip.includes("为你的设备推荐"),
+    JSON.stringify(androidMark),
+  );
+
+  await setUserAgent(client, UA_WINDOWS);
+  await goTo(client, "/download/", 1440, 900, false, DL_READY);
+  const windowsMark = await evaluate(
+    client,
+    `document.querySelector('.download-card.is-recommended')?.dataset.platform ?? 'none'`,
+  );
+  check(
+    "a Windows visitor sees the mark on the Windows card",
+    windowsMark === "windows",
+    `marked=${windowsMark}`,
+  );
+
+  await setUserAgent(client, UA_IPHONE);
+  await goTo(client, "/download/", 390, 844, false, DL_READY);
+  const iphoneMark = await evaluate(
+    client,
+    `document.querySelectorAll('.download-card.is-recommended').length`,
+  );
+  check(
+    "an iPhone gets no mark — the hint never fires for a device we don't serve",
+    iphoneMark === 0,
+    `recommended=${iphoneMark}`,
+  );
+
+  await setUserAgent(client, "");
+  await goTo(client, "/download/", 390, 844, false, DL_READY);
+  const downloadOverflow = await evaluate(
+    client,
+    `document.documentElement.scrollWidth <= window.innerWidth + 1`,
+  );
+  check(
+    "the download page has no horizontal overflow at 390",
+    downloadOverflow === true,
+    `no overflow=${downloadOverflow}`,
+  );
+
+  await goTo(client, "/en/download/", 1440, 900, false, DL_READY);
+  const downloadEn = await evaluate(
+    client,
+    `(() => ({
+      title: document.querySelector('.download-title')?.textContent ?? '',
+      htmlLang: document.documentElement.lang,
+    }))()`,
+  );
+  check(
+    "the English download page renders its own language",
+    downloadEn.title.includes("Download") && downloadEn.htmlLang === "en",
+    JSON.stringify(downloadEn),
+  );
+
+  await goTo(client, "/download/", 1440, 900, true, DL_READY);
+  const downloadReduced = await evaluate(
+    client,
+    `(() => {
+      const head = document.querySelector('.download-head');
+      return {
+        opacity: head ? Number(getComputedStyle(head).opacity) : 0,
+        cards: document.querySelectorAll('.download-card').length,
+      };
+    })()`,
+  );
+  check(
+    "the download page is fully readable under reduced motion",
+    downloadReduced.cards === 3 && downloadReduced.opacity >= 0.99,
+    JSON.stringify(downloadReduced),
+  );
 
   client.close();
 } finally {

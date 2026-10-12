@@ -223,6 +223,35 @@ export const cn = {
     backTarget: "#ideas",
   },
 
+  download: {
+    eyebrow: "下载",
+    title: "下载拾序",
+    lead: "把该记的交给拾序，从你的设备开始。",
+    recommended: "为你的设备推荐",
+    currentVersion: "最新版本",
+    android: {
+      name: "安卓版",
+      note: "APK 安装包，下载后按提示安装。",
+      action: "下载安卓版",
+    },
+    windows: {
+      name: "Windows 版",
+      note: "安装程序（.exe），双击安装。",
+      action: "下载 Windows 版",
+    },
+    web: {
+      name: "网页版",
+      note: "在浏览器里直接使用，不用安装。",
+      badge: "即将推出",
+    },
+    footnote: "登录同一个账号，内容保持同步。",
+    meta: {
+      title: "下载拾序｜Daymark",
+      description:
+        "下载拾序的 Windows 版或安卓版，把课程生活里零散的小事，放回它该在的位置。",
+    },
+  },
+
   footer: {
     brandCn: demo.brandCn,
     brandEn: demo.brandEn,
@@ -239,7 +268,7 @@ export const cn = {
         title: "关于",
         links: [
           { label: "品牌介绍", href: "#ideas" },
-          { label: "更新日志", href: "https://github.com/a161858970-ux/Daymark/releases", external: true },
+          { label: "更新日志", href: "https://github.com/violetsnowl/Daymark/releases", external: true },
         ],
       },
       {
@@ -247,7 +276,7 @@ export const cn = {
         links: [
           {
             label: "GitHub",
-            href: "https://github.com/a161858970-ux/Daymark",
+            href: "https://github.com/violetsnowl/Daymark",
             external: true,
           },
           { label: "联系方式", href: "mailto:hello@daymark.top", external: true },

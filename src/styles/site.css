@@ -2448,3 +2448,182 @@
 .not-found-action {
   margin-top: 32px;
 }
+
+/* --------------------------------------------------------------------------
+   /download/ (2026-10-12)
+   The page that hands the product over: three choices, one quiet mark on the
+   one that matches the visitor's device. Same canvas, same type, nothing loud.
+   -------------------------------------------------------------------------- */
+.download-page {
+  position: relative;
+  isolation: isolate;
+  min-height: 62svh;
+  padding-block: clamp(52px, 8.5vh, 110px) clamp(72px, 11vh, 128px);
+}
+
+.download-head {
+  max-width: 46em;
+}
+
+.download-title {
+  margin-top: 14px;
+  font-size: var(--type-statement);
+  line-height: 1.24;
+  font-weight: 500;
+}
+
+.download-lead {
+  margin-top: 16px;
+}
+
+.download-grid {
+  display: grid;
+  gap: 18px;
+  margin-top: clamp(36px, 5.5vh, 56px);
+}
+
+@media (min-width: 720px) {
+  .download-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1080px) {
+  .download-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.download-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 26px 26px 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-large);
+  transition:
+    border-color var(--motion-panel) var(--ease-out),
+    background-color var(--motion-panel) var(--ease-out);
+  animation: download-in var(--motion-narrative-long) var(--ease-settle) both;
+}
+
+.download-card:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.download-card:nth-child(3) {
+  animation-delay: 140ms;
+}
+
+/* The mark matching the visitor's device: a hint, not a gate — it changes the
+   card's border and adds one quiet chip, and nothing else on the page. */
+.download-card.is-recommended {
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+
+.download-recommended {
+  position: absolute;
+  top: 26px;
+  right: 14px;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: var(--type-micro);
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+  animation: download-chip-in var(--motion-narrative) var(--ease-settle) both;
+}
+
+.download-card-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.download-card-note {
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+.download-card-version {
+  color: var(--muted);
+  font-size: var(--type-micro);
+  letter-spacing: 0.05em;
+}
+
+.download-card-action {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.download-card-action .download-arrow {
+  font-size: 13px;
+  opacity: 0.85;
+  transition: transform var(--motion-short) var(--ease-out);
+}
+
+.download-card-action:hover .download-arrow {
+  transform: translateY(2px);
+}
+
+/* The third choice, present from day one and honest about its state. */
+.download-card-web {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--line-strong);
+}
+
+.download-card-coming {
+  margin-top: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: var(--radius-medium);
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.download-footnote {
+  margin-top: clamp(26px, 4.5vh, 40px);
+  max-width: 42em;
+  color: var(--muted);
+  font-size: var(--type-meta);
+  line-height: 1.7;
+}
+
+.download-head,
+.download-footnote {
+  animation: download-in var(--motion-narrative-long) var(--ease-settle) both;
+}
+
+@keyframes download-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes download-chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

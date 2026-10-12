@@ -43,7 +43,12 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     (next: Locale, hash?: string) => {
       if (next === locale) return;
       storeLocale(next);
-      const target = next === "en" ? EN_PREFIX : "/";
+      /* Stay on the same page when the page has an address of its own
+         (/download/ ↔ /en/download/); the home surface still resolves to the
+         locale's entry point (W3 §2.3). */
+      const bare = location.pathname.replace(/^\/en(?=\/|$)/, "") || "/";
+      const target =
+        next === "en" ? (bare === "/" ? `${EN_PREFIX}/` : `${EN_PREFIX}${bare}`) : bare;
       navigate(`${target}${location.search ?? ""}${hash ?? ""}`);
     },
     [locale, location.search, navigate],

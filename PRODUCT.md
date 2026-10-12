@@ -52,7 +52,7 @@ daymark.top 的品牌官网（Editorial Product Website / 编辑式产品官网�
 - 设计母稿 5 份（`设计母稿/`，W0–W4，优先级 W0→W4，唯一基线，只读）。
 - 审计与交接：`REVIEW.md`（§0 = 当前滚动窗口参数唯一真源）、`HANDOFF.md`、`README.md`；`.review/` 验证脚本与截图工具链。
 - 确定性演示数据：`src/content/demo.ts`（主 Item 唯一定义处）；内容层 `src/content/{cn,en}.ts`。
-- 产品真相来源：产品仓库 https://github.com/a161858970-ux/Daymark —— 官网叙事不得超出其真实能力。
+- 产品真相来源：产品仓库 https://github.com/violetsnowl/Daymark —— 官网叙事不得超出其真实能力。
 - 没有真实用户见证、案例、benchmark、press——此类内容不得虚构。
 
 ## Product Principles

@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { LocaleProvider, useCopy } from "./LocaleProvider.tsx";
 import { SiteNav } from "../components/site/SiteNav.tsx";
+import { DownloadPage } from "./DownloadPage.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { NotFoundPage } from "./NotFoundPage.tsx";
 import { useDocumentMeta } from "./useDocumentMeta.ts";
@@ -24,6 +25,10 @@ function SiteShell() {
         <Route path="/" element={<HomePage />} />
         <Route path="/en" element={<HomePage />} />
         <Route path="/en/" element={<HomePage />} />
+        <Route path="/download" element={<DownloadPage />} />
+        <Route path="/download/" element={<DownloadPage />} />
+        <Route path="/en/download" element={<DownloadPage />} />
+        <Route path="/en/download/" element={<DownloadPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>

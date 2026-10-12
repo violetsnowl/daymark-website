@@ -237,6 +237,23 @@ export interface ViewsCopy {
   windowLabel: (view: string) => string;
 }
 
+/** /download/ (2026-10-12) — the page that hands the product over. */
+export interface DownloadCopy {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  /** The mark on the card that matches the visitor's own device. */
+  recommended: string;
+  /** Version prefix; the page renders `{currentVersion} v0.2.2`. */
+  currentVersion: string;
+  android: { name: string; note: string; action: string };
+  windows: { name: string; note: string; action: string };
+  /** The third choice: present from day one, honest about its state. */
+  web: { name: string; note: string; badge: string };
+  footnote: string;
+  meta: { title: string; description: string };
+}
+
 export interface SiteCopy {
   locale: Locale;
   /** BCP 47 tag for <html lang>. */
@@ -260,5 +277,6 @@ export interface SiteCopy {
   sync: SyncCopy;
   day: DayCopy;
   closing: ClosingCopy;
+  download: DownloadCopy;
   footer: FooterCopy;
 }

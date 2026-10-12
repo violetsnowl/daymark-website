@@ -17,7 +17,10 @@ export function useDocumentMeta(): void {
   useEffect(() => {
     document.documentElement.lang = copy.htmlLang;
     document.documentElement.classList.toggle("lang-en", copy.locale === "en");
-    document.title = copy.metadata.title;
+    /* `/download/` is the one alternate page under the same shell; its metadata
+       follows the same rule as the two home surfaces (W3 §23). */
+    const isDownload = location.pathname.includes("/download");
+    document.title = (isDownload ? copy.download.meta : copy.metadata).title;
 
     const head = document.head;
 
@@ -44,7 +47,7 @@ export function useDocumentMeta(): void {
       element.href = href;
     };
 
-    const { title, description } = copy.metadata;
+    const { title, description } = isDownload ? copy.download.meta : copy.metadata;
     meta('meta[name="description"]', "content", description);
     meta('meta[property="og:title"]', "content", title);
     meta('meta[property="og:description"]', "content", description);
@@ -52,16 +55,13 @@ export function useDocumentMeta(): void {
     meta('meta[name="twitter:title"]', "content", title);
     meta('meta[name="twitter:description"]', "content", description);
 
-    const canonical =
-      copy.locale === "en" ? "https://daymark.top/en/" : "https://daymark.top/";
+    const pageZh = isDownload ? "https://daymark.top/download/" : "https://daymark.top/";
+    const pageEn = isDownload ? "https://daymark.top/en/download/" : "https://daymark.top/en/";
+    const canonical = copy.locale === "en" ? pageEn : pageZh;
     link('link[rel="canonical"]', canonical);
     meta('meta[property="og:url"]', "content", canonical);
-    link('link[rel="alternate"][hreflang="zh-CN"]', "https://daymark.top/", "zh-CN");
-    link('link[rel="alternate"][hreflang="en"]', "https://daymark.top/en/", "en");
-    link(
-      'link[rel="alternate"][hreflang="x-default"]',
-      "https://daymark.top/",
-      "x-default",
-    );
+    link('link[rel="alternate"][hreflang="zh-CN"]', pageZh, "zh-CN");
+    link('link[rel="alternate"][hreflang="en"]', pageEn, "en");
+    link('link[rel="alternate"][hreflang="x-default"]', pageZh, "x-default");
   }, [copy, location.pathname]);
 }
