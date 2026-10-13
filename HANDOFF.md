@@ -3,7 +3,7 @@
 > 面向上一位之后的**接手者**（人或其他 agent / 模型）。
 > 这份文档负责"现在在哪、怎么接着干、别踩什么"。**实现细节与逐轮修复记录在 [`REVIEW.md`](./REVIEW.md)**，两者不重复：这里给判断，那里给证据。
 >
-> 最后更新：2026-10-12（官网已上线）｜2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G；同日晚：设计审查修复轮——对比度系统修复（达 AA）/ Scene 03 标题断行 / 导航按页序，见 §0H）。此后：验收修订（§0I/§0J）→ **上线（2026-10-12）**——仓库推送 GitHub 私人仓库 `violetsnowl/daymark-website`，Cloudflare Workers 连仓自动重建；`daymark.top` NS 已切 Cloudflare、全链路验证全绿（执行记录见 `DEPLOY.md` §8 与 `REVIEW.md` §0K）。
+> 最后更新：2026-10-13（下载页 + 网页版收官，详见 §2/§3 与 `REVIEW.md` §0L）｜2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G；同日晚：设计审查修复轮——对比度系统修复（达 AA）/ Scene 03 标题断行 / 导航按页序，见 §0H）。此后：验收修订（§0I/§0J）→ **上线（2026-10-12）**——仓库推送 GitHub 私人仓库 `violetsnowl/daymark-website`，Cloudflare Workers 连仓自动重建；`daymark.top` NS 已切 Cloudflare、全链路验证全绿（执行记录见 `DEPLOY.md` §8 与 `REVIEW.md` §0K）。
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 2. 当前进度
 
-**首页十节全部实现；多轮验收修订已完成（REVIEW §0H/§0I/§0J）；官网已于 2026-10-12 上线 `daymark.top`**（部署执行记录见 `DEPLOY.md` §8）。
+**首页十节全部实现；多轮验收修订已完成（REVIEW §0H/§0I/§0J）；官网已于 2026-10-12 上线 `daymark.top`**（部署执行记录见 `DEPLOY.md` §8）。**下载页 `/download/` 与网页版 `app.daymark.top` 同日上线并验收通过（`REVIEW.md` §0L）**：全站 CTA（开始使用 / 进入 Daymark / 进入拾序）落点 = **站内 `/download/`**（三平台选择页）；网页版入口由下载页卡片承担、以**新标签页**打开（原页留在下载页）。
 
 ```text
 01 Hero                  ✅  05 One Item, Many Views ✅  09 A Day      ✅
@@ -47,7 +47,7 @@
 
 ## 3. 下一步该做什么
 
-1. **整页视觉验收**（人的判断，不是自动化的）。建议按这个顺序走一遍 `01 → 10`，重点看这几处：
+1. **整页视觉验收**（已于上线前通过；以下保留为**复验路径**——走一遍 `01 → 10` 时重点看这几处）：
    - **Scene 01（本轮修正，REVIEW.md §0G）**：滚进场景时**五条全在**（四条事项 + 幽灵问题"这件事属于哪门课？"）；继续滚，先幽灵、后"老师说看第五章"依次**在视野中**淡出，最后三条落位；片段以约 40–68px 的行程缓缓向轴线聚拢——时序上**进入一半即开始、离场前全部静止**，留意幅度与时机是否都对；
    - Scene 06 修订后的问题是否读起来像"帮你弄清楚"，而不是"AI 在展示能力"；
    - Scene 07 离开时那条 1px 连接线是否真的不在了，且之后不再变化；
@@ -55,7 +55,7 @@
    - Scene 03 / 05 的逐项到场是否读得出顺序感（这两个场景各被返工过两轮）；
    - **Scene 04（本轮重构，REVIEW.md §0D）**：面板先到位再开讲；交叉淡入连续跟手，不应有"画面不动、只是在等"的区间；释放时收束句就位、没有拖尾；课程页现在有**双倍行程**（≈200px）——留意它是否不再"一闪而过"，总览/日历各 100px 是否仍够。
 2. **`<1024px` tablet motion 矩阵** —— 用户明确要求**留到整页验收之后**再统一做，现在不要动。当前 `<1024px` 不启用 sticky，Scene 04 退化为顺序排列。
-3. **部署（已完成）** —— 2026-10-12 已正式上线 `daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿，记录见 `DEPLOY.md` §8 / `REVIEW.md` §0K）。**后续工作**：① 下载页 `/download/` —— **已上线（2026-10-12，见 `REVIEW.md` §0L）**；② `Always Use HTTPS` 已开启复验；③ **下一件：网页版（Web App）可行性专项摸底**；④ `app.daymark.top` 先指向下载页（Web 版上线后改指本体）。
+3. **部署（已完成）** —— 2026-10-12 已正式上线 `daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿，记录见 `DEPLOY.md` §8 / `REVIEW.md` §0K）。**后续工作（已全部完成，2026-10-12）**：① 下载页 —— 已上线（`REVIEW.md` §0L）；② `Always Use HTTPS` —— 已开启复验；③ 网页版 —— **已上线并验收通过**：静态产物由 App 仓库（`violetsnowl/Daymark`）经 Cloudflare Workers `daymark-app` 自动构建托管于 `app.daymark.top`，记录见该仓库 `docs/WEB_VERSION_DEPLOY.md`；④ `app.daymark.top` 已由「跳转桥」改绑为网页版本体。
 4. 英文文案 V2 语言润色（当前是独立撰写的第一版，见 §6）。
 
 ---
@@ -73,7 +73,7 @@
 | Scene 03 / 04 的 `03` / `04` 小编号**保留** | 小号低对比度的编辑式处理符合官网章节语言；现已抽为共享组件 `SceneHeader`，03→10 连续 |
 | 导航「怎么工作」指向 **`#capture`** 而不是 `#views` | 用户从导航主动进入时应从工作流起点开始：Capture → Context → Views |
 | `<1024px` 不启用 sticky，暂不调整 | 留到完整首页完成后统一做 tablet motion review |
-| 部署搁置 | 用户要自己处理 DNS 与 API 迁移 |
+| 部署搁置（历史，已完结） | 原定用户自行处理 DNS 与 API 迁移 —— **2026-10-12 全线上线（官网 + 下载页 + 网页版）**，执行记录见 `DEPLOY.md` §8 / `REVIEW.md` §0K/§0L |
 
 ### 4.2 Scene 06 演示案例的修订（用户明确要求，已实现）
 
@@ -171,7 +171,7 @@
 - **测试视口 900px 高时文档偏短**，Scene 07/08 靠后的场景可能滚不到自己的终点 —— 那是页面短的必然，不是场景缺陷。判断"是否完成"要用 `probe-page-end.mjs` 的六视口，不要在 `checks.mjs` 里用固定偏移推断。
 - **服务挂掉时症状是"选择器找不到"，不是"连不上"**：脚本先连浏览器、拿到空白文档，然后在 `querySelector(...).getBoundingClientRect()` 上抛 `TypeError: Cannot read properties of null`。看到这个错误**先确认 5173 / 4173 还在响应**，再怀疑代码 —— 收尾时就因此误判了一轮。
 - **等待要看"应用渲染完成"而非"页面加载完成"**：`goTo()` 现在轮询 `.hero` 与 `#capture` 是否已存在。固定延时在机器有负载时不够，症状同样是"选择器找不到"。
-- **`checks.mjs` 单轮约 3–6 分钟**（86 项断言、多次导航、多处逐帧采样）。短超时会被杀在半途，日志看起来像失败。
+- **`checks.mjs` 单轮约 3–6 分钟**（104 项断言、多次导航、多处逐帧采样）。短超时会被杀在半途，日志看起来像失败。
 
 ---
 
@@ -223,7 +223,7 @@ node .review/scratch/probe-sync-exit.mjs http://127.0.0.1:4173/   # Scene 07 退
 
 ## 7. Git 现状与提交规则
 
-- 默认分支 `main`。结项时共 **13 次提交**（自 `47fbe93` 首发至 `70f03a3`；Scene 04 节奏从 `f09f49a`（锚定舞台）到 `70f03a3`（中间页双倍）共六次改动、Scene 07 拍点与 Scene 04 收束句 `fe92e69`、演示案例换新 `67f2969`、Scene 01 三轮 `a218b6f`/`af6f99d`/`ea6a421`）；此后验收修订轮与上线工作继续提交——完整列表看 `git log --oneline`。
+- 默认分支 `main`。结项时共 **13 次提交**（自 `47fbe93` 首发至 `70f03a3`；Scene 04 节奏从 `f09f49a`（锚定舞台）到 `70f03a3`（中间页双倍）共六次改动、Scene 07 拍点与 Scene 04 收束句 `fe92e69`、演示案例换新 `67f2969`、Scene 01 三轮 `a218b6f`/`af6f99d`/`ea6a421`）；此后验收修订轮、上线与下载页/网页版联动改动继续提交——**截至 2026-10-13 收官：`e59c576`，工作区干净、与远端同步**；完整列表看 `git log --oneline`。
 - **远端 = `https://github.com/violetsnowl/daymark-website`（私人仓库，2026-10-11 已推送）**；Cloudflare Workers 项目 `daymark-website` 连仓，**push 到 `main` 自动重建上线**（生产 `daymark.top`）。这是既定工作流；push 前仍保持常规检查（构建 / checks / 无敏感文件）。
 - 提交信息用中文，遵循 conventional 风格：首行 `type(scope): 摘要`，正文说明范围、关键机制与验证结果。
 - `.gitignore` 忽略 `node_modules`、`dist`、`.env*`、编辑器目录，以及 `.review/` 下的产物（`*.png` / `*.json` / `*.log` / `chrome-profile*`，**任意深度**）。**脚本保留、产物不提交** —— `.review/` 下的验证脚本是有价值的项目资产，改产品时应与代码一起提交。
@@ -257,6 +257,7 @@ node .review/scratch/probe-sync-exit.mjs http://127.0.0.1:4173/   # Scene 07 退
 |---|---|
 | ~~远端仓库与首次推送~~ | **已解决（2026-10-11）**：已推送 `violetsnowl/daymark-website`（私人仓库，Cloudflare 连仓自动部署） |
 | ~~域名与部署~~ | **已完成（2026-10-12 上线）**：见 `DEPLOY.md` §8 / `REVIEW.md` §0K；后续为下载页与 Web 版 |
+| ~~下载页 / 网页版~~ | **已完成（2026-10-12）**：下载页上线（`REVIEW.md` §0L）；网页版 `app.daymark.top` 上线并验收（App 仓库托管，见其 `docs/WEB_VERSION_DEPLOY.md`） |
 | 品牌资产 | `public/favicon.svg` 是按品牌标记几何重绘的矢量版本；Logo 用的是产品 App 既有标记几何。若存在正式矢量资产，应替换 |
 | 英文文案 V2 | 当前是独立撰写的第一版，锁定前需要一轮语言润色 |
 | Scene 03 备注 | Scene 03（Context）在 Stage D 结论里被归入"通过、保持现状"，其逐项到场参数在本轮**未改动** |
@@ -269,6 +270,11 @@ node .review/scratch/probe-sync-exit.mjs http://127.0.0.1:4173/   # Scene 07 退
 4. **`checks.mjs` 依赖页面总长度**：Scene 07/08 靠后的场景在测试视口下可能滚不到自己的终点。判断"是否完成"请用 `probe-page-end.mjs`（六视口），不要用 `checks.mjs` 里的固定偏移推断。
 5. **锚点重命名会影响工具**：本轮把 `#work` 改成 `#capture` 时，`.review/` 下三个脚本因仍找旧锚点而失败。改任何 `id` 时记得全仓搜索。
 6. Scene 08 的收束句到场点定在 0.6（而不是更靠后）—— 因为该场景后面还有 Closing 场景，不能指望文档有余量。若将来在它之后删减内容，可以把它推后一些。
+
+### 9.3 运维（本机 Hermes 侧，2026-10-13 建立）
+
+- **健康哨兵**：Hermes 定时任务「拾序健康哨兵」每 10 分钟巡视 `api.daymark.top/api/v1/health`、`daymark.top`、`app.daymark.top`；失败复测 2 次并做本机网络对照（防误报），异常与恢复经 **Bot Chat** 通知用户；仅电脑开机时运行。脚本位置 `%LOCALAPPDATA%\hermes\scripts\daymark-watch.py`（不在本仓库）。
+- **线上依赖（勿动）**：`api.daymark.top` 保持**灰云 DNS only**（App 直连与证书续期依赖）；证书自动续期（官网/网页版由 Cloudflare、api 由 Caddy）；服务器 systemd 自愈（cm-api / Caddy 均 enabled 开机自启）。
 
 ---
 
