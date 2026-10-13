@@ -1538,7 +1538,40 @@ try {
     `${reducedViews.markedRows} marked rows, per projection ${reducedViews.perPanel.join("/")}`,
   );
 
-  /* ---------- 11. Language switch ---------- */
+  /* ---------- 11. Language entry ---------- */
+  /* Chinese is the only default: a fresh browser whose language list is
+     English-first must still land on `/` in Chinese — the entry never infers a
+     language from the browser (user ruling, 2026-10-13). The navigator override
+     is installed before the document scripts so the app sees it on boot. */
+  const languageProbe = await client.send("Page.addScriptToEvaluateOnNewDocument", {
+    source: `Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+             Object.defineProperty(navigator, 'language', { get: () => 'en-US' });`,
+  });
+  await evaluate(client, `localStorage.clear()`);
+  await goTo(client, "/", 1440, 900);
+  const entry = await evaluate(
+    client,
+    `(() => ({
+      path: location.pathname,
+      htmlLang: document.documentElement.lang,
+      stored: localStorage.getItem('daymark-language'),
+      h1: document.querySelector('h1')?.textContent ?? null,
+    }))()`,
+  );
+  check(
+    "a fresh English-first browser still lands on the Chinese surface",
+    entry.path === "/" &&
+      String(entry.htmlLang).startsWith("zh") &&
+      String(entry.h1).length > 0 &&
+      !/Put the small things/.test(String(entry.h1)),
+    `${entry.path} · lang=${entry.htmlLang} · stored=${entry.stored}`,
+  );
+  await client.send("Page.removeScriptToEvaluateOnNewDocument", {
+    identifier: languageProbe.identifier,
+  });
+  await evaluate(client, `localStorage.clear()`);
+
+  /* ---------- 11b. Language switch ---------- */
   await goTo(client, "/", 1440, 900);
   await evaluate(
     client,

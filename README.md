@@ -87,7 +87,7 @@ src/
 - `/` 是完整中文体验，也是 canonical 入口；`/en/` 是完整英文体验。
 - 中文页面不出现装饰性英文标题、slogan 或双语双行展示；只有 `Daymark`、`GitHub` 这类专有名词保留拉丁写法。
 - 语言是一次真实跳转，不做原地翻译，因此任何时刻都不会同屏出现两种语言。
-- 明确选择会写入 `localStorage: daymark-language`；只有在访问精确的 `/` 且浏览器首选英文、且此前没有任何选择时，才会进入 `/en/`。
+- 明确选择会写入 `localStorage: daymark-language`；**入口不由浏览器语言推断**——`/` 永远是中文（用户裁决 2026-10-13），`/en/` 只能由语言开关进入。
 
 ### 2. 产品展示（本地、确定性）
 
@@ -124,7 +124,7 @@ src/
 `.review/` 下是本地验证工具（不属于站点产物，也不参与构建）：
 
 ```bash
-node .review/checks.mjs        http://127.0.0.1:4173/   # 104 项浏览器行为断言（主入口）
+node .review/checks.mjs        http://127.0.0.1:4173/   # 105 项浏览器行为断言（主入口）
 node .review/probe-page-end.mjs http://127.0.0.1:4173/  # 六视口的场景边界与"离开后是否还变"
 node .review/measure.mjs       http://127.0.0.1:4173/   # 参考视口 DOM 几何测量
 node .review/shots.mjs         http://127.0.0.1:4173/   # 参考视口截图（按状态定位）

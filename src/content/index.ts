@@ -10,26 +10,14 @@ export const copies: Record<Locale, SiteCopy> = { cn, en };
 /** The prototype's only hard language boundary (W3 §2.1). */
 export const EN_PREFIX = "/en";
 
+/* Records an explicit language choice so it survives navigation. Nothing is
+   inferred from the browser. */
 const STORAGE_KEY = "daymark-language";
 
 /** Chinese is canonical: anything that is not the /en subtree is Chinese. */
 export function localeFromPath(pathname: string): Locale {
   const normalised = pathname.replace(/\/+$/, "").toLowerCase();
   return normalised === EN_PREFIX || normalised.startsWith(`${EN_PREFIX}/`) ? "en" : "cn";
-}
-
-/**
- * The stored value preserves an explicit choice across pages. It is only read
- * for exact `/` entry (see resolveEntryPath) and is not required for privacy
- * modes where storage is unavailable.
- */
-export function readStoredLocale(): Locale | null {
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored === "en" || stored === "cn" ? stored : null;
-  } catch {
-    return null;
-  }
 }
 
 export function storeLocale(locale: Locale): void {
@@ -40,25 +28,7 @@ export function storeLocale(locale: Locale): void {
   }
 }
 
-type GlobalWithNavigator = typeof globalThis & {
-  navigator?: { languages?: readonly string[]; language?: string };
-};
-
-/**
- * `/` and `/en/` are separate canonical surfaces and the Chinese site must never
- * be a redirect target that visitors cannot leave (W2 §2.3). English is only
- * inferred for an exact `/` entry, before the visitor has expressed a choice,
- * and never for any other path (which would hide content or fight the router).
- */
-export function resolveEntryPath(pathname: string, search = ""): string | null {
-  if (pathname !== "/") return null;
-  if (readStoredLocale()) return null;
-  const navigatorLike = (globalThis as GlobalWithNavigator).navigator;
-  if (!navigatorLike) return null;
-  const languages = navigatorLike.languages?.length
-    ? navigatorLike.languages
-    : navigatorLike.language
-      ? [navigatorLike.language]
-      : [];
-  return languages.some((tag) => /^en\b/i.test(tag)) ? `${EN_PREFIX}/${search}` : null;
-}
+/* There is no entry redirect: `/` is always Chinese and `/en/` is reached only
+   by choosing English with the toggle (user ruling, 2026-10-13 — the earlier
+   English-first browser inference was removed because it read as "the site
+   defaults to English"). */

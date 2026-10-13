@@ -2,7 +2,7 @@
 
 **阶段**：W4 Stage C（已验收）+ **Stage D（已验收，Scene 06 按要求修订）** + **Stage E（A Day / Closing / 完整 Footer）**
 **W3 Prototype Baseline**：已按裁决锁定
-**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **104/104 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
+**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **105/105 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
 **审计约定**：本文件是项目的总审计——每轮改动后把最新情况、问题与实测写进对应小节；§0 是当前生效参数，§0B–§0J 保留各轮修复过程。
 
 ---
@@ -403,6 +403,36 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 **行为层核对结论**：无不一致——Context `900/800`、Views `TRAVEL_PX 400`、Sync `leadIn 200`、Day `leadIn 260` 与 §0 表逐条相等。实跑：`npm test` **20/20**、`node .review/checks.mjs` **104/104**（生产构建）。
 
 **本轮未动（留待决定）**：`.views-stage` 的 CSS 回退高度 `calc(72svh + 228px)`（≈ min-height + 300px）——只在第一次实测前生效；是否把它也改成 `+ 400px` 属于代码级微调，未列入文档轮。
+
+---
+
+## 0N. 语言入口默认中文（2026-10-13，用户裁决）
+
+**用户观察**：「新浏览器默认打开是英文版」——查证**属实**，且来自**既有设计**：`src/main.tsx` 在“首次访问精确 `/` + 本地无历史选择 + 浏览器语言列表含 `en`”时把地址改写到 `/en/`（W2 §2.3 的英文推断，由 `resolveEntryPath` 实现）。
+
+**实测（390×844，模拟全新浏览器）**：
+
+```text
+浏览器语言 [en-US, en] + 清空 localStorage  → location.pathname = /en/，写入 daymark-language=en
+浏览器语言 [zh-CN, zh] + 清空 localStorage  → location.pathname = /，不写存储
+```
+
+**裁决**：改为**默认中文**——入口不再由浏览器语言推断；`/en/` 只能由语言开关进入。依据：中文是唯一默认主语言（HANDOFF §8 硬性约定），入口不该由浏览器偏好决定；英文读者一步可切。
+
+**改动**
+- `src/main.tsx`：删除入口改写逻辑（改为纯渲染 + 裁决说明）；不再 `storeLocale("en")`。
+- `src/content/index.ts`：删除 `resolveEntryPath` 与 `readStoredLocale`（随之成为无引用），`STORAGE_KEY` 注释改写；`EN_PREFIX` 仍被 LocaleProvider 使用。
+- `README.md`：语言机制一条同步（入口不由浏览器推断）。
+- `.review/checks.mjs`：新增回归断言 `a fresh English-first browser still lands on the Chinese surface`（注入 en-US 语言列表 + 清空存储 → 仍在 `/`、`html.lang` 为 zh、H1 为中文）。总数 104 → **105**。
+
+**验证（本轮实跑）**：`npm run typecheck` ✓ / `npm run build` ✓ / `npm test` **20/20** / `node .review/checks.mjs` **105/105**。
+
+**本轮另记：手机端（390×844）实地复核发现（只记录，未改动，待裁决）**
+
+| 场景 | 现场实测 | 性质 |
+|---|---|---|
+| Scene 01 | **幽灵问题「这件事属于哪门课？」被 CSS 隐藏**（`.fragment--ghost { display: none }`，`max-width: 767px`），屏上只剩四条；四条是**左对齐静态列表**（不是散落布局），收敛动画退化为**纯水平位移**（实测每条 ≈45–55px，终点全部停在列左沿；另两条起点盒子左边界为负）| 移动端从未做动效设计（`<1024px` 专项一直待做）；「散落 → 收敛 → 两条见证消散」的叙事在手机端不成立 |
+| Scene 04 | `<1024px` 不进钉住，改为三张连续卡片；实测三张卡 `data-active` = `overview` / `courses` / `calendar`，内层三个面板 opacity 分别为 **1/0/0、0/1/0、0/0/1** —— **各显示对应投影，不是重复渲染同一页**；重复感来自同一套产品窗外壳（侧栏/品牌/页头）连出现三次 | 原有裁决（`<1024px` 不启用 sticky）；是否做移动端本地化（单卡 + 可点标签）待用户裁决 |
 
 ---
 
