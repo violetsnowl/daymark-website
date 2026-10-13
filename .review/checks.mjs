@@ -501,7 +501,11 @@ try {
       window.scrollTo({ top: docTop - 0.12 * vh, behavior: 'instant' });
       await pause();
       const primary = read();
-      window.scrollTo({ top: docTop - 0.35 * vh, behavior: 'instant' });
+      /* The start sample sits close to the window's own start (progress ≈0.05)
+         so the travel measured is the whole settle: with a staggered start the
+         first note is already moving before the desktop's 0.15 point, and a
+         later sample would under-report every note's distance. */
+      window.scrollTo({ top: docTop - 0.45 * vh, behavior: 'instant' });
       await pause();
       const early = read();
       window.scrollTo({ top: docTop + 0.70 * vh, behavior: 'instant' });
@@ -522,9 +526,15 @@ try {
     text: fragment.text,
     distance: Math.hypot(fragment.fx - ideasPhone.late[index].fx, fragment.fy - ideasPhone.late[index].fy),
   }));
+  /* A phone's move is a *settle*, not a crossing (user ruling, 2026-10-13: a
+     larger, one-directional slide read as cheap and pulled the scatter into one
+     band). Each note rises ~28px into its own spot and drifts ≤16px sideways,
+     one note at a time — 28px is the floor that keeps the settle perceivable;
+     the staggered beats and the two fade-outs carry the rest of the
+     legibility. */
   check(
-    "the phone scatter visibly converges (each fragment travels ≥ 36px)",
-    phoneTravels.every((entry) => entry.distance >= 36),
+    "the phone scatter visibly settles (each fragment travels ≥ 28px)",
+    phoneTravels.every((entry) => entry.distance >= 28),
     phoneTravels.map((entry) => `${entry.text.slice(0, 5)} ${Math.round(entry.distance)}px`).join(" "),
   );
 
@@ -1208,9 +1218,19 @@ try {
       }
       window.scrollTo({ top: 999999, behavior: 'auto' });
       await new Promise((resolve) => setTimeout(resolve, 900));
-      /* Re-read after arriving: one-shot demos above can lengthen the document
-         while the walk is in progress, and a stale total then reads as "did not
-         reach the bottom" when the page in fact did. */
+      /* One-shot demos above lengthen the document while the walk is in
+         progress (measured 362px), and a scroll issued just before such a
+         growth stops short of the *new* bottom — which then reads as "did not
+         reach the bottom" when the page in fact did, 122–249px short, on both
+         the current and the previous build (2026-10-13). Re-issue the scroll
+         against the re-read height until it settles (bounded), so the assertion
+         keeps testing the scene and not the page's growth timing. */
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const reached = document.documentElement.scrollHeight - window.innerHeight;
+        if (Math.abs(window.scrollY - reached) < 1.5) break;
+        window.scrollTo({ top: 999999, behavior: 'auto' });
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      }
       const totalNow = document.documentElement.scrollHeight - window.innerHeight;
       const read = (node, prop) => {
         const raw = node?.style.getPropertyValue(prop);

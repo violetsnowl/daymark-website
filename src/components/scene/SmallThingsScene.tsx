@@ -20,12 +20,21 @@ interface FragmentLayout {
   /** Starting offset from the shared axis, in px. */
   fromX: number;
   fromY: number;
-  /** Narrow screens (<768px) show an in-flow column instead of an absolute
-   *  field, so the start offsets alone carry the scatter — and they must be
-   *  large enough to read as movement in a 350px column (user report,
-   *  2026-10-13: the notes read as one still list, and the convergence measured
-   *  only ≈50px on a phone). Positive = the note starts to the right and drifts
-   *  left into the column edge. */
+  /** Phones keep the scatter: the copies stay in flow and the notes remain
+   *  absolutely placed, but on their own coordinates — a flow column with
+   *  varied indents read as "a list that lost its alignment", not as scattered
+   *  notes (user report, 2026-10-13). */
+  narrowTop?: string;
+  narrowLeft?: string;
+  /** Start offsets on a phone. Two-sided (positive = starts right of its
+   *  resting spot, negative = left of it) so the notes settle from both
+   *  directions; a unison slide to one side read as cheap, large offsets pulled
+   *  the whole scatter into one band ("starting from the middle of the
+   *  screen"), and a note resting near the middle of a 350px column read as
+   *  hanging there (all three reported 2026-10-13). The five resting spots now
+   *  alternate left / right — nothing settles on the centre line — and the move
+   *  is a settle, not a crossing: ≤16px horizontally, 28px of rise vertically,
+   *  one note at a time. */
   narrowFromX?: number;
   narrowFromY?: number;
   size: 0 | 1 | 2;
@@ -47,12 +56,21 @@ const GHOST_LAYOUT: FragmentLayout = {
   align: "left",
   fromX: 40,
   fromY: -12,
-  narrowFromX: 120,
-  narrowFromY: -12,
+  narrowTop: "82%",
+  narrowLeft: "10%",
+  narrowFromX: 14,
+  narrowFromY: 28,
   size: 1,
   opacity: 0.34,
   exitsAt: [0.34, 0.62],
 };
+
+/* Phone pacing: instead of the whole column moving as one, each note collapses
+   its own indent inside its own slice of the window — the question leads (it is
+   already in place when the section settles, and resolves out first), the four
+   notes follow in reading order. Same curve, same window, no new trigger. */
+const NARROW_STAGGER = 0.09;
+const NARROW_SPAN = 0.5;
 
 const LAYOUT: (FragmentLayout | null)[] = [
   {
@@ -61,8 +79,10 @@ const LAYOUT: (FragmentLayout | null)[] = [
     align: "left",
     fromX: 68,
     fromY: -24,
-    narrowFromX: 96,
-    narrowFromY: -18,
+    narrowTop: "34%",
+    narrowLeft: "0%",
+    narrowFromX: 14,
+    narrowFromY: 28,
     size: 2,
     opacity: 1,
   },
@@ -72,8 +92,10 @@ const LAYOUT: (FragmentLayout | null)[] = [
     align: "left",
     fromX: -60,
     fromY: -18,
-    narrowFromX: 52,
-    narrowFromY: 16,
+    narrowTop: "46%",
+    narrowLeft: "55%",
+    narrowFromX: -12,
+    narrowFromY: 28,
     size: 0,
     /* Was 0.78 — under the contrast review (P1-1) this whisper read below any
        usable level; 0.97 keeps it the softer of the two ink notes while
@@ -86,8 +108,10 @@ const LAYOUT: (FragmentLayout | null)[] = [
     align: "left",
     fromX: -56,
     fromY: 24,
-    narrowFromX: 150,
-    narrowFromY: -10,
+    narrowTop: "60%",
+    narrowLeft: "5%",
+    narrowFromX: 16,
+    narrowFromY: 28,
     size: 1,
     opacity: 0.92,
     exitsAt: [0.7, 0.88],
@@ -98,8 +122,10 @@ const LAYOUT: (FragmentLayout | null)[] = [
     align: "left",
     fromX: 60,
     fromY: 20,
-    narrowFromX: 64,
-    narrowFromY: 18,
+    narrowTop: "72%",
+    narrowLeft: "64%",
+    narrowFromX: -12,
+    narrowFromY: 28,
     size: 2,
     opacity: 1,
   },
@@ -162,9 +188,19 @@ export function SmallThingsScene() {
     const nodes = field.querySelectorAll<HTMLElement>("[data-fragment]");
 
     for (const node of nodes) {
-      const layout = LAYOUT[Number(node.dataset.fragment)];
+      const index = Number(node.dataset.fragment);
+      const layout = LAYOUT[index];
       if (!layout) continue;
-      const eased = progress * progress * (3 - 2 * progress);
+      /* Desktop keeps one calm monotonic convergence; phones give each note its
+         own slice of the same window so the indent collapses land one after
+         another rather than as a single block slide. */
+      const local = narrow
+        ? Math.min(
+            1,
+            Math.max(0, (progress - (layout === GHOST_LAYOUT ? 0 : (index + 1) * NARROW_STAGGER)) / NARROW_SPAN),
+          )
+        : progress;
+      const eased = local * local * (3 - 2 * local);
       const startX = narrow ? (layout.narrowFromX ?? layout.fromX) : layout.fromX;
       const startY = narrow ? (layout.narrowFromY ?? layout.fromY) : layout.fromY;
       const x = reducedMotion ? 0 : startX * (1 - eased);
@@ -233,8 +269,10 @@ export function SmallThingsScene() {
                 data-fragment={index}
                 style={
                   {
-                    top: fragment.layout.top,
-                    left: fragment.layout.left,
+                    top: narrow ? (fragment.layout.narrowTop ?? fragment.layout.top) : fragment.layout.top,
+                    left: narrow
+                      ? (fragment.layout.narrowLeft ?? fragment.layout.left)
+                      : fragment.layout.left,
                     "--base-opacity": fragment.layout.opacity,
                     "--fx": `${
                       (narrow ? fragment.layout.narrowFromX : fragment.layout.fromX) ??
@@ -259,6 +297,8 @@ export function SmallThingsScene() {
               data-fragment={copy.smallThings.fragments.length + index}
               style={
                 {
+                  top: narrow ? GHOST_LAYOUT.narrowTop : GHOST_LAYOUT.top,
+                  left: narrow ? GHOST_LAYOUT.narrowLeft : GHOST_LAYOUT.left,
                   /* Was 0.34 — the question read as an accident (1.3:1).
                      Raised to ≈2.9:1 so it is perceivable while still the
                      faintest fragment in the scatter (review P1-1). */

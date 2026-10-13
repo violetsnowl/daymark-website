@@ -734,15 +734,18 @@
   .scene-small-things {
     padding-block: clamp(88px, 16vw, 132px);
   }
+  /* The field keeps its scatter: the copy stays in flow at the top, the five
+     notes keep absolute placement on mobile coordinates, and the field reserves
+     the room they need. (A flow column with varied indents was tried first and
+     read as «a list that lost its alignment» — user report, 2026-10-13.) */
   .small-things-field {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 28px;
+    display: block;
     min-height: 0;
+    padding-bottom: 440px;
   }
   .small-things-copy {
-    order: -1;
+    position: relative;
+    z-index: 2;
     max-width: none;
     text-align: start;
   }
@@ -750,38 +753,18 @@
     margin-top: 18px;
     font-size: 16px;
   }
-  /* The notes are an in-flow column here, so both axes of the convergence
-     matter: <--fx/--fy> carry the whole scatter, and the colour keeps the
-     --ex channel so the two designed fade-outs stay witnessed (the ghost
-     question and 老师说看第五章 must resolve out mid-scene, as on desktop).
-     User report (2026-10-13): only four notes were visible, they read as one
-     left-aligned list and the movement was a ~50px nudge in the left half. */
+  /* The notes keep the desktop mechanism — absolute placement, the two-axis
+     convergence and the colour-mix channel that lets the two designed
+     fade-outs (the ghost question, 老师说看第五章) be witnessed mid-scene —
+     only the coordinates and the type scale are tuned for a 390px column. */
   .fragment {
-    position: static;
-    white-space: normal;
     font-size: 16.5px;
-    color: color-mix(
-      in srgb,
-      var(--ink-soft) calc(var(--base-opacity, 1) * var(--ex, 1) * 100%),
-      transparent
-    );
-    transform: translate3d(var(--fx, 0px), var(--fy, 0px), 0) scale(var(--fs, 1));
   }
   .fragment--size-0 {
     font-size: 15px;
-    color: color-mix(
-      in srgb,
-      var(--muted) calc(var(--base-opacity, 1) * var(--ex, 1) * 100%),
-      transparent
-    );
   }
   .fragment--size-2 {
     font-size: 20px;
-    color: color-mix(
-      in srgb,
-      var(--ink) calc(var(--base-opacity, 1) * var(--ex, 1) * 100%),
-      transparent
-    );
   }
   .fragment--serif {
     font-size: 17.5px;
