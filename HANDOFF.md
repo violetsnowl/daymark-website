@@ -3,7 +3,7 @@
 > 面向上一位之后的**接手者**（人或其他 agent / 模型）。
 > 这份文档负责"现在在哪、怎么接着干、别踩什么"。**实现细节与逐轮修复记录在 [`REVIEW.md`](./REVIEW.md)**，两者不重复：这里给判断，那里给证据。
 >
-> 最后更新：2026-10-13（下载页 + 网页版收官，详见 §2/§3 与 `REVIEW.md` §0L）｜2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G；同日晚：设计审查修复轮——对比度系统修复（达 AA）/ Scene 03 标题断行 / 导航按页序，见 §0H）。此后：验收修订（§0I/§0J）→ **上线（2026-10-12）**——仓库推送 GitHub 私人仓库 `violetsnowl/daymark-website`，Cloudflare Workers 连仓自动重建；`daymark.top` NS 已切 Cloudflare、全链路验证全绿（执行记录见 `DEPLOY.md` §8 与 `REVIEW.md` §0K）。
+> 最后更新：2026-10-13（下载页 + 网页版收官，详见 §2/§3 与 `REVIEW.md` §0L；同日文档对齐轮见 `REVIEW.md` §0M）｜2026-10-11 结项（Scene 04 四轮重构 + 收束句后置 + **中间页双倍时间（1:2:1，用户试用）**；Scene 07 收尾拍提前；演示案例换新为「高等数学 / 周五交第二次作业」；Scene 01 片段节奏修正——幽灵片段 0px 可见窗口、位移幅度加倍、动效窗口提前半视口——见 [`REVIEW.md`](./REVIEW.md) §0D/§0E/§0F/§0G；同日晚：设计审查修复轮——对比度系统修复（达 AA）/ Scene 03 标题断行 / 导航按页序，见 §0H）。此后：验收修订（§0I/§0J）→ **上线（2026-10-12）**——仓库推送 GitHub 私人仓库 `violetsnowl/daymark-website`，Cloudflare Workers 连仓自动重建；`daymark.top` NS 已切 Cloudflare、全链路验证全绿（执行记录见 `DEPLOY.md` §8 与 `REVIEW.md` §0K）。
 
 ---
 
@@ -223,7 +223,7 @@ node .review/scratch/probe-sync-exit.mjs http://127.0.0.1:4173/   # Scene 07 退
 
 ## 7. Git 现状与提交规则
 
-- 默认分支 `main`。结项时共 **13 次提交**（自 `47fbe93` 首发至 `70f03a3`；Scene 04 节奏从 `f09f49a`（锚定舞台）到 `70f03a3`（中间页双倍）共六次改动、Scene 07 拍点与 Scene 04 收束句 `fe92e69`、演示案例换新 `67f2969`、Scene 01 三轮 `a218b6f`/`af6f99d`/`ea6a421`）；此后验收修订轮、上线与下载页/网页版联动改动继续提交——**截至 2026-10-13 收官：`e59c576`，工作区干净、与远端同步**；完整列表看 `git log --oneline`。
+- 默认分支 `main`。结项时共 **13 次提交**（自 `47fbe93` 首发至 `70f03a3`；Scene 04 节奏从 `f09f49a`（锚定舞台）到 `70f03a3`（中间页双倍）共六次改动、Scene 07 拍点与 Scene 04 收束句 `fe92e69`、演示案例换新 `67f2969`、Scene 01 三轮 `a218b6f`/`af6f99d`/`ea6a421`）；此后验收修订轮、上线与下载页/网页版联动改动继续提交——**截至 2026-10-13 收官：工作区干净、与远端同步**；最新提交随时看 `git log --oneline`（不在此写死哈希——写下来的一刻就已落后一位）。
 - **远端 = `https://github.com/violetsnowl/daymark-website`（私人仓库，2026-10-11 已推送）**；Cloudflare Workers 项目 `daymark-website` 连仓，**push 到 `main` 自动重建上线**（生产 `daymark.top`）。这是既定工作流；push 前仍保持常规检查（构建 / checks / 无敏感文件）。
 - 提交信息用中文，遵循 conventional 风格：首行 `type(scope): 摘要`，正文说明范围、关键机制与验证结果。
 - `.gitignore` 忽略 `node_modules`、`dist`、`.env*`、编辑器目录，以及 `.review/` 下的产物（`*.png` / `*.json` / `*.log` / `chrome-profile*`，**任意深度**）。**脚本保留、产物不提交** —— `.review/` 下的验证脚本是有价值的项目资产，改产品时应与代码一起提交。

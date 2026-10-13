@@ -143,7 +143,7 @@ node .review/probe-bands.mjs   http://127.0.0.1:4173/ 1440 900   # 逐帧打出 
 
 ## 这一版**没有**做
 
-独立页面（`/about`、`/privacy`、`/terms`）、正式 Open Graph 主视觉、分析埋点、`<1024px` 的 tablet motion 矩阵（用户已明确排期到整页验收之后）、Web 版。这些属于预期而非缺失，均在母稿的后续 Stage 中，或需项目所有者拍板。
+独立页面（`/about`、`/privacy`、`/terms`）、正式 Open Graph 主视觉、分析埋点、`<1024px` 的 tablet motion 矩阵（整页验收已完成，等排期）。这些属于预期而非缺失，均在母稿的后续 Stage 中，或需项目所有者拍板。**网页版已上线**（`app.daymark.top`，由 App 仓库 `violetsnowl/Daymark` 的 `daymark-app` Worker 托管，非本仓库产物）。
 
 ## 已知待办
 

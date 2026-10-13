@@ -12,7 +12,7 @@ web
 
 ## Product Purpose
 
-daymark.top 的品牌官网（Editorial Product Website / 编辑式产品官网）：不是罗列功能的产品介绍页，而是把 Daymark 的产品理念翻译成一次连续的下滚叙事，让完全陌生的访客在 30–90 秒内理解：它是什么、为什么和普通待办应用不一样、为什么值得打开。主 CTA「开始使用」指向 app.daymark.top（按 DEPLOY.md 属于「以后接」，当前未上线）。
+daymark.top 的品牌官网（Editorial Product Website / 编辑式产品官网）：不是罗列功能的产品介绍页，而是把 Daymark 的产品理念翻译成一次连续的下滚叙事，让完全陌生的访客在 30–90 秒内理解：它是什么、为什么和普通待办应用不一样、为什么值得打开。主 CTA「开始使用」落点为站内下载页 `/download/`（三平台选择页）；网页版入口由下载页卡片承担（`app.daymark.top`，新标签页打开）。
 
 ## Positioning
 
@@ -36,7 +36,7 @@ daymark.top 的品牌官网（Editorial Product Website / 编辑式产品官网�
 - 硬约束：页面不得出现任何具体日期（统一「周五 · 23:59」）；不出现任何指标数字（完成率/连续天数/节省时间等）；不虚构产品能力。
 - prefers-reduced-motion 是一等模式：必须有完整静态替代，不是「动画变快」。
 - 无水平滚动；每个动画必须有语义。
-- 明确的未决事项（不得当作已达成）：正式品牌资产（favicon 为按标记几何重绘的矢量版；Logo 沿用产品既有标记）；英文文案 V2 语言润色；<1024px tablet motion 矩阵；部署与首次推送（仓库无远端；步骤见 DEPLOY.md）。
+- 明确的未决事项（不得当作已达成）：正式品牌资产（favicon 为按标记几何重绘的矢量版；Logo 沿用产品既有标记）；英文文案 V2 语言润色；<1024px tablet motion 矩阵（整页验收已完成，等排期）。
 - 当前状态（2026-10-13 更新）：十节 + Footer 实现完毕；自动化 104/104、单元测试 20/20；官网已上线 `daymark.top`（含下载页 `/download/` 与网页版 `app.daymark.top`）。
 
 ## Brand Commitments

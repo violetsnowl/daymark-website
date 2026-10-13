@@ -1421,9 +1421,10 @@
   scroll-margin-top: calc(var(--nav-height) + 16px);
 }
 
-/* Sticky stage over a scroll narrative driver (W4 §4.2). Height is deliberately
-   ~2.4 viewports on desktop: enough travel for three readable views, not a
-   forced cinematic sequence. */
+/* Sticky stage over a scroll narrative driver (W4 §4.2). Height is not a
+   viewport multiple: it is the measured pinned object plus a fixed, short
+   travel (see below) — a passage through three views, not a cinematic
+   sequence. */
 .views-stage {
   position: relative;
   margin-top: clamp(16px, 3vh, 40px);
@@ -1431,9 +1432,10 @@
 
 @media (min-width: 1024px) {
   /* The stage is sized by ViewsScene.tsx to the measured pinned object plus
-     the fixed pinned travel (TRAVEL_PX = 300px → each projection owns 100px of
-     scrolling, about one to two wheel clicks). The fallback approximates it
-     before the first measurement: min-height + 300px.
+     the fixed pinned travel (TRAVEL_PX = 400px → 100 / 200 / 100px = 1:2:1,
+     the middle projection doubled by user trial; each flank ≈ one to two wheel
+     clicks). The fallback approximates it before the first measurement:
+     min-height + 300px — the measured value wins on the first effect run.
      History: the height was 300svh, then 200svh; both read as the section
      ending while the scrollbar kept moving, and both asked the reader to
      scroll for seconds inside a passage that only needs to tell a story. */
