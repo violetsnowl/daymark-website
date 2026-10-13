@@ -473,6 +473,61 @@ try {
       .join(" "),
   );
 
+  /* ---------- 7b. Scene 01 on a phone (390×844) ---------- */
+  /* 用户报告（2026-10-13）：手机上只剩四条、且只在左半边小范围移动——幽灵问题被
+     display:none 掐掉，收敛退化成 ≈50px 的水平位移。这一节把两件事都变成红警：
+     五条（含幽灵）在屏、每条净位移 ≥ 36px；采样口径与上一节相同，只换视口。 */
+  await goTo(client, "/", 390, 844);
+  await delay(600);
+  const ideasPhone = await evaluate(
+    client,
+    `(async () => {
+      const section = document.querySelector('.scene-small-things');
+      const docTop = section.getBoundingClientRect().top + window.scrollY;
+      const vh = window.innerHeight;
+      const pause = () => new Promise((resolve) => setTimeout(resolve, 250));
+      const read = () => Array.from(document.querySelectorAll('.scene-small-things .fragment')).map((node) => {
+        const rect = node.getBoundingClientRect();
+        const ex = Number(node.style.getPropertyValue('--ex') || '1');
+        const base = Number(node.style.getPropertyValue('--base-opacity') || '1');
+        return {
+          text: node.textContent ?? '',
+          shown: getComputedStyle(node).display !== 'none',
+          visible: rect.top < vh && rect.bottom > 0 && ex * base > 0.1,
+          fx: parseFloat(node.style.getPropertyValue('--fx') || '0'),
+          fy: parseFloat(node.style.getPropertyValue('--fy') || '0'),
+        };
+      });
+      window.scrollTo({ top: docTop - 0.12 * vh, behavior: 'instant' });
+      await pause();
+      const primary = read();
+      window.scrollTo({ top: docTop - 0.35 * vh, behavior: 'instant' });
+      await pause();
+      const early = read();
+      window.scrollTo({ top: docTop + 0.70 * vh, behavior: 'instant' });
+      await pause();
+      const late = read();
+      return { primary, early, late };
+    })()`,
+  );
+  check(
+    "a phone shows the whole scatter, the unresolved question included",
+    ideasPhone.primary.length === 5 &&
+      ideasPhone.primary.every((fragment) => fragment.shown && fragment.visible),
+    ideasPhone.primary
+      .map((fragment) => `${fragment.text.slice(0, 6)}:${fragment.shown && fragment.visible ? "on" : "off"}`)
+      .join(" "),
+  );
+  const phoneTravels = ideasPhone.early.map((fragment, index) => ({
+    text: fragment.text,
+    distance: Math.hypot(fragment.fx - ideasPhone.late[index].fx, fragment.fy - ideasPhone.late[index].fy),
+  }));
+  check(
+    "the phone scatter visibly converges (each fragment travels ≥ 36px)",
+    phoneTravels.every((entry) => entry.distance >= 36),
+    phoneTravels.map((entry) => `${entry.text.slice(0, 5)} ${Math.round(entry.distance)}px`).join(" "),
+  );
+
   /* ---------- 8. Scene 03 — Context (W4 §3) ---------- */
   await goTo(client, "/", 1440, 900);
   await scrollToSection(client, "#context");

@@ -750,28 +750,47 @@
     margin-top: 18px;
     font-size: 16px;
   }
+  /* The notes are an in-flow column here, so both axes of the convergence
+     matter: <--fx/--fy> carry the whole scatter, and the colour keeps the
+     --ex channel so the two designed fade-outs stay witnessed (the ghost
+     question and 老师说看第五章 must resolve out mid-scene, as on desktop).
+     User report (2026-10-13): only four notes were visible, they read as one
+     left-aligned list and the movement was a ~50px nudge in the left half. */
   .fragment {
     position: static;
     white-space: normal;
     font-size: 16.5px;
-    color: var(--ink-soft);
-    transform: translate3d(var(--fx, 0px), 0, 0);
+    color: color-mix(
+      in srgb,
+      var(--ink-soft) calc(var(--base-opacity, 1) * var(--ex, 1) * 100%),
+      transparent
+    );
+    transform: translate3d(var(--fx, 0px), var(--fy, 0px), 0) scale(var(--fs, 1));
   }
   .fragment--size-0 {
     font-size: 15px;
-    color: var(--muted);
-    padding-inline-start: 14%;
+    color: color-mix(
+      in srgb,
+      var(--muted) calc(var(--base-opacity, 1) * var(--ex, 1) * 100%),
+      transparent
+    );
   }
   .fragment--size-2 {
     font-size: 20px;
-    color: var(--ink);
+    color: color-mix(
+      in srgb,
+      var(--ink) calc(var(--base-opacity, 1) * var(--ex, 1) * 100%),
+      transparent
+    );
   }
   .fragment--serif {
     font-size: 17.5px;
-    padding-inline-start: 26%;
   }
+  /* The unresolved question is part of the story on every screen (it used to
+     be display:none here, which quietly removed the scene's last beat). */
   .fragment--ghost {
-    display: none;
+    display: block;
+    font-size: 15.5px;
   }
 }
 

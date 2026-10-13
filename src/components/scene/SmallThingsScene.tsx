@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useCopy } from "../../app/LocaleProvider.tsx";
 import { useReducedMotion, useSceneProgress } from "../../motion/index.ts";
 
@@ -20,11 +20,39 @@ interface FragmentLayout {
   /** Starting offset from the shared axis, in px. */
   fromX: number;
   fromY: number;
+  /** Narrow screens (<768px) show an in-flow column instead of an absolute
+   *  field, so the start offsets alone carry the scatter — and they must be
+   *  large enough to read as movement in a 350px column (user report,
+   *  2026-10-13: the notes read as one still list, and the convergence measured
+   *  only ≈50px on a phone). Positive = the note starts to the right and drifts
+   *  left into the column edge. */
+  narrowFromX?: number;
+  narrowFromY?: number;
   size: 0 | 1 | 2;
   opacity: number;
   /** Leaving fragments resolve out of the scene before it ends. */
   exitsAt?: [number, number];
 }
+
+/**
+ * The unresolved question's start offset. It is a named constant because both
+ * the render-time inline value and the convergence effect read it — the ghost
+ * is not part of `copy.smallThings.fragments`, so it has no LAYOUT index of its
+ * own. Narrow screens: same as the rest of the scatter, it arrives with the
+ * whole question and then resolves out mid-scene.
+ */
+const GHOST_LAYOUT: FragmentLayout = {
+  top: "43%",
+  left: "11%",
+  align: "left",
+  fromX: 40,
+  fromY: -12,
+  narrowFromX: 120,
+  narrowFromY: -12,
+  size: 1,
+  opacity: 0.34,
+  exitsAt: [0.34, 0.62],
+};
 
 const LAYOUT: (FragmentLayout | null)[] = [
   {
@@ -33,6 +61,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     align: "left",
     fromX: 68,
     fromY: -24,
+    narrowFromX: 96,
+    narrowFromY: -18,
     size: 2,
     opacity: 1,
   },
@@ -42,6 +72,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     align: "left",
     fromX: -60,
     fromY: -18,
+    narrowFromX: 52,
+    narrowFromY: 16,
     size: 0,
     /* Was 0.78 — under the contrast review (P1-1) this whisper read below any
        usable level; 0.97 keeps it the softer of the two ink notes while
@@ -54,6 +86,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     align: "left",
     fromX: -56,
     fromY: 24,
+    narrowFromX: 150,
+    narrowFromY: -10,
     size: 1,
     opacity: 0.92,
     exitsAt: [0.7, 0.88],
@@ -64,6 +98,8 @@ const LAYOUT: (FragmentLayout | null)[] = [
     align: "left",
     fromX: 60,
     fromY: 20,
+    narrowFromX: 64,
+    narrowFromY: 18,
     size: 2,
     opacity: 1,
   },
@@ -71,22 +107,16 @@ const LAYOUT: (FragmentLayout | null)[] = [
      It floats in the left column beside the headline — never on the headline
      glyphs (the old 36% left landed it inside the headline's second line and
      read as mud once the window fix made it actually visible). */
-  {
-    top: "43%",
-    left: "11%",
-    align: "left",
-    fromX: 40,
-    fromY: -12,
-    size: 1,
-    opacity: 0.34,
-    exitsAt: [0.34, 0.62],
-  },
+  GHOST_LAYOUT,
   null,
 ];
 
 export function SmallThingsScene() {
   const copy = useCopy();
   const reducedMotion = useReducedMotion();
+  /* Phones get the in-flow column, so the convergence runs on the narrow
+     start offsets (see FragmentLayout.narrowFromX). Same window, same curve. */
+  const [narrow, setNarrow] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const fieldRef = useRef<HTMLDivElement>(null);
   const { progress } = useSceneProgress(sectionRef, {
@@ -118,6 +148,15 @@ export function SmallThingsScene() {
      §10.6's "6–14px" was a prototype hint; the user 裁决 overrides it, same
      as Scene 04 covered W4 §4.5's suggested pacing). */
   useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const query = window.matchMedia("(max-width: 767px)");
+    const update = () => setNarrow(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
     const field = fieldRef.current;
     if (!field) return;
     const nodes = field.querySelectorAll<HTMLElement>("[data-fragment]");
@@ -126,8 +165,10 @@ export function SmallThingsScene() {
       const layout = LAYOUT[Number(node.dataset.fragment)];
       if (!layout) continue;
       const eased = progress * progress * (3 - 2 * progress);
-      const x = reducedMotion ? 0 : layout.fromX * (1 - eased);
-      const y = reducedMotion ? 0 : layout.fromY * (1 - eased);
+      const startX = narrow ? (layout.narrowFromX ?? layout.fromX) : layout.fromX;
+      const startY = narrow ? (layout.narrowFromY ?? layout.fromY) : layout.fromY;
+      const x = reducedMotion ? 0 : startX * (1 - eased);
+      const y = reducedMotion ? 0 : startY * (1 - eased);
       node.style.setProperty("--fx", `${x.toFixed(2)}px`);
       node.style.setProperty("--fy", `${y.toFixed(2)}px`);
       node.style.setProperty("--fs", reducedMotion ? "1" : (0.96 + eased * 0.04).toFixed(4));
@@ -141,7 +182,7 @@ export function SmallThingsScene() {
         node.style.setProperty("--ex", "1");
       }
     }
-  }, [progress, reducedMotion]);
+  }, [progress, reducedMotion, narrow]);
 
   const fragments = copy.smallThings.fragments.map((fragment, index) => ({
     ...fragment,
@@ -195,8 +236,14 @@ export function SmallThingsScene() {
                     top: fragment.layout.top,
                     left: fragment.layout.left,
                     "--base-opacity": fragment.layout.opacity,
-                    "--fx": `${fragment.layout.fromX}px`,
-                    "--fy": `${fragment.layout.fromY}px`,
+                    "--fx": `${
+                      (narrow ? fragment.layout.narrowFromX : fragment.layout.fromX) ??
+                      fragment.layout.fromX
+                    }px`,
+                    "--fy": `${
+                      (narrow ? fragment.layout.narrowFromY : fragment.layout.fromY) ??
+                      fragment.layout.fromY
+                    }px`,
                   } as CSSProperties
                 }
               >
@@ -216,8 +263,11 @@ export function SmallThingsScene() {
                      Raised to ≈2.9:1 so it is perceivable while still the
                      faintest fragment in the scatter (review P1-1). */
                   "--base-opacity": 0.72,
-                  "--fx": "40px",
-                  "--fy": "-12px",
+                  "--fx": `${
+                    (narrow ? GHOST_LAYOUT.narrowFromX : GHOST_LAYOUT.fromX) ??
+                    GHOST_LAYOUT.fromX
+                  }px`,
+                  "--fy": `${GHOST_LAYOUT.fromY}px`,
                 } as CSSProperties
               }
             >

@@ -36,7 +36,7 @@
 | `npm run typecheck` | 通过 |
 | `npm test` | 20/20 |
 | `npm run build` | 通过（2026-10-12 复核；产物体积以当时 `npm run build` 输出为准） |
-| `node .review/checks.mjs http://127.0.0.1:4173/` | **105/105** |
+| `node .review/checks.mjs http://127.0.0.1:4173/` | **107/107** |
 | `node .review/probe-page-end.mjs http://127.0.0.1:4173/` | 六视口全通过 |
 | `node .review/probe-views-pacing.mjs http://127.0.0.1:4173/` | Scene 04：整场景居中钉住（进度 0 = 钉住、进度 1 = 释放）、行程 400px（1:2:1 = 100/200/100px）、翻页 0.25/0.75（REVIEW §0D） |
 | `node .review/scratch/probe-fragments.mjs http://127.0.0.1:4173/` | Scene 01：五条片段可见窗口 + 收敛漂移（0px 幽灵修复；位移 39–68px；REVIEW §0G） |
@@ -54,7 +54,7 @@
    - Scene 08 → 09 的过渡是否明显慢下来，最后是否只剩"一个名字、一句话、一个动作"；
    - Scene 03 / 05 的逐项到场是否读得出顺序感（这两个场景各被返工过两轮）；
    - **Scene 04（本轮重构，REVIEW.md §0D）**：面板先到位再开讲；交叉淡入连续跟手，不应有"画面不动、只是在等"的区间；释放时收束句就位、没有拖尾；课程页现在有**双倍行程**（≈200px）——留意它是否不再"一闪而过"，总览/日历各 100px 是否仍够。
-2. **`<1024px` tablet motion 矩阵** —— 用户明确要求**留到整页验收之后**再统一做。整页验收已完成；390 宽的两处现场发现与建议方案见 [`REVIEW.md`](./REVIEW.md) §0N，开工与否待用户裁决。当前 `<1024px` 不启用 sticky，Scene 04 退化为顺序排列。
+2. **`<1024px` tablet motion 矩阵** —— 用户裁决（2026-10-13）：**Scene 01 手机端已本地化**（五条含幽灵在屏、散落交错、净位移 51–141px，见 [`REVIEW.md`](./REVIEW.md) §0O）；**Scene 04 手机端仍是三张连续卡**，单卡 + 可点标签的改造**待用户裁决**。当前 `<1024px` 不启用 sticky。
 3. **部署（已完成）** —— 2026-10-12 已正式上线 `daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿，记录见 `DEPLOY.md` §8 / `REVIEW.md` §0K）。**后续工作（已全部完成，2026-10-12）**：① 下载页 —— 已上线（`REVIEW.md` §0L）；② `Always Use HTTPS` —— 已开启复验；③ 网页版 —— **已上线并验收通过**：静态产物由 App 仓库（`violetsnowl/Daymark`）经 Cloudflare Workers `daymark-app` 自动构建托管于 `app.daymark.top`，记录见该仓库 `docs/WEB_VERSION_DEPLOY.md`；④ `app.daymark.top` 已由「跳转桥」改绑为网页版本体。
 4. 英文文案 V2 语言润色（当前是独立撰写的第一版，见 §6）。
 
@@ -171,7 +171,7 @@
 - **测试视口 900px 高时文档偏短**，Scene 07/08 靠后的场景可能滚不到自己的终点 —— 那是页面短的必然，不是场景缺陷。判断"是否完成"要用 `probe-page-end.mjs` 的六视口，不要在 `checks.mjs` 里用固定偏移推断。
 - **服务挂掉时症状是"选择器找不到"，不是"连不上"**：脚本先连浏览器、拿到空白文档，然后在 `querySelector(...).getBoundingClientRect()` 上抛 `TypeError: Cannot read properties of null`。看到这个错误**先确认 5173 / 4173 还在响应**，再怀疑代码 —— 收尾时就因此误判了一轮。
 - **等待要看"应用渲染完成"而非"页面加载完成"**：`goTo()` 现在轮询 `.hero` 与 `#capture` 是否已存在。固定延时在机器有负载时不够，症状同样是"选择器找不到"。
-- **`checks.mjs` 单轮约 3–6 分钟**（105 项断言、多次导航、多处逐帧采样）。短超时会被杀在半途，日志看起来像失败。
+- **`checks.mjs` 单轮约 3–6 分钟**（107 项断言、多次导航、多处逐帧采样）。短超时会被杀在半途，日志看起来像失败。
 
 ---
 
@@ -199,7 +199,7 @@ npm test             # 20 项单元测试（解析器 + 主 Item 连续性）
 浏览器行为验证（需先起 `preview` 或 `dev`）：
 
 ```bash
-node .review/checks.mjs        http://127.0.0.1:4173/   # 105 项断言，主入口
+node .review/checks.mjs        http://127.0.0.1:4173/   # 107 项断言，主入口
 node .review/probe-page-end.mjs http://127.0.0.1:4173/  # 六视口场景边界
 node .review/shots.mjs         http://127.0.0.1:4173/   # 按状态定位的参考截图
 node .review/perf.mjs          http://127.0.0.1:4173/   # LCP / CLS / 传输量
@@ -265,7 +265,7 @@ node .review/scratch/probe-sync-exit.mjs http://127.0.0.1:4173/   # Scene 07 退
 ### 9.2 已知风险
 
 1. ~~没有远端、从未 push~~ —— **已解决（2026-10-11）**：已推送 `violetsnowl/daymark-website` 并接通 Cloudflare 连仓自动部署。
-2. **`<1024px` 的 tablet motion 尚未评审** —— 已知那里 sticky 关闭、Scene 04 退化为顺序排列，但 768–1024 区间的动效节奏没有专门看过。整页验收已完成，等排期。**390 宽已实地复核（2026-10-13，用户报告）**：Scene 01 的幽灵问题被 CSS 隐藏、四条是左对齐列表且收敛退化为 ≈45–55px 水平位移；Scene 04 为三张连续卡（实测各显示对应投影，非重复渲染）——现场数据见 [`REVIEW.md`](./REVIEW.md) §0N，处置待用户裁决。
+2. **`<1024px` 的 tablet motion 尚未评审** —— 已知那里 sticky 关闭、Scene 04 退化为顺序排列，但 768–1024 区间的动效节奏没有专门看过。整页验收已完成，等排期。**390 宽已实地复核（2026-10-13，用户报告）**：Scene 01 的幽灵被隐藏、收敛退化为 ≈50px 水平位移——**已修复并加断言**（§0O，手机端 107/107）；Scene 04 为三张连续卡（实测各显示对应投影，非重复渲染），改造待裁决（§0N）。
 3. **两处"成对参数"**：Scene 04 的 `.views-stage` 高度 ↔ `ViewsScene.tsx` 的窗口（窗口现在锚在舞台；两条节奏断言守着钉住与释放两个端点，但舞台高度本身仍要成对改）；Scene 07 的 `.scene-sync` 尾部空间 ↔ 其 `leadIn`。改一处必须改另一处，两边都有交叉注释。
 4. **`checks.mjs` 依赖页面总长度**：Scene 07/08 靠后的场景在测试视口下可能滚不到自己的终点。判断"是否完成"请用 `probe-page-end.mjs`（六视口），不要用 `checks.mjs` 里的固定偏移推断。
 5. **锚点重命名会影响工具**：本轮把 `#work` 改成 `#capture` 时，`.review/` 下三个脚本因仍找旧锚点而失败。改任何 `id` 时记得全仓搜索。
@@ -291,7 +291,7 @@ src/content/{cn,en}.ts                    中文母稿 / 英文独立文案
 src/content/demo.ts                       确定性演示数据（主 Item 的唯一定义处）
 src/content/types.ts                      SiteCopy 契约
 src/styles/site.css                       各场景布局（含"成对参数"的交叉注释）
-.review/checks.mjs                        105 项断言，改完必跑
+.review/checks.mjs                        107 项断言，改完必跑
 .review/probe-views-pacing.mjs            Scene 04 钉住节奏（改 Scene 04 窗口后必跑）
 .review/scratch/probe-sync-exit.mjs       Scene 07 退出状态（改 Scene 07 拍点后必跑）
 .review/probe-page-end.mjs                六视口场景边界，改最后一节上方内容后必跑
