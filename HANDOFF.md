@@ -36,7 +36,7 @@
 | `npm run typecheck` | 通过 |
 | `npm test` | 20/20 |
 | `npm run build` | 通过（2026-10-12 复核；产物体积以当时 `npm run build` 输出为准） |
-| `node .review/checks.mjs http://127.0.0.1:4173/` | **107/107** |
+| `node .review/checks.mjs http://127.0.0.1:4173/` | **108/108** |
 | `node .review/probe-page-end.mjs http://127.0.0.1:4173/` | 六视口全通过 |
 | `node .review/probe-views-pacing.mjs http://127.0.0.1:4173/` | Scene 04：整场景居中钉住（进度 0 = 钉住、进度 1 = 释放）、行程 400px（1:2:1 = 100/200/100px）、翻页 0.25/0.75（REVIEW §0D） |
 | `node .review/scratch/probe-fragments.mjs http://127.0.0.1:4173/` | Scene 01：五条片段可见窗口 + 收敛漂移（0px 幽灵修复；位移 39–68px；REVIEW §0G） |
@@ -163,6 +163,12 @@
 **原因**：effect 把 `phase` 放进依赖数组，切到 `ASKING` 时 cleanup 把"选项就绪"的定时器清掉了。
 **解决**：不由 `phase` 驱动，守卫写成函数式更新。
 
+### 5.3b 滚动后菜单失效（`backdrop-filter` 的包含块）
+
+**现象**：手机端「打开菜单」只在页面顶部可用；一旦滚动过 64px（导航进入 `is-scrolled` 状态），点开菜单只剩一条 52px 的窄条，无法使用。
+**原因**：`.site-nav.is-scrolled { backdrop-filter: blur(14px) }`——**带 `backdrop-filter` 的元素会成为 `position: fixed` 后代的包含块**；菜单用 `position: fixed; inset: 64px 0 0 0`（假设相对视口），滚动后包含块变成 65px 的导航条，`top/bottom` 一起塌进导航条内部。
+**解决**：窄屏菜单改 `position: absolute` 锚在 sticky 导航条上 + 显式高度 `calc(100svh - var(--nav-height-mobile))`。断言：`the menu still opens after the page has scrolled`（旧断言只在页面顶部测过，所以没抓住）。改任何"粘顶元素里的 fixed 面板"时先想一遍这条规则。
+
 ### 5.4 验证工具的坑（不是产品问题，但浪费过时间）
 
 - **注入的尾部 spacer 会改变页尾几何**：截图工具曾给页面追加 120vh spacer 让"未完工的首页"能滚到最后一节。整页完成后它只会把真实结尾推出可滚动范围、拍到空白。**已移除**，别再往回加。
@@ -171,7 +177,7 @@
 - **测试视口 900px 高时文档偏短**，Scene 07/08 靠后的场景可能滚不到自己的终点 —— 那是页面短的必然，不是场景缺陷。判断"是否完成"要用 `probe-page-end.mjs` 的六视口，不要在 `checks.mjs` 里用固定偏移推断。
 - **服务挂掉时症状是"选择器找不到"，不是"连不上"**：脚本先连浏览器、拿到空白文档，然后在 `querySelector(...).getBoundingClientRect()` 上抛 `TypeError: Cannot read properties of null`。看到这个错误**先确认 5173 / 4173 还在响应**，再怀疑代码 —— 收尾时就因此误判了一轮。
 - **等待要看"应用渲染完成"而非"页面加载完成"**：`goTo()` 现在轮询 `.hero` 与 `#capture` 是否已存在。固定延时在机器有负载时不够，症状同样是"选择器找不到"。
-- **`checks.mjs` 单轮约 3–6 分钟**（107 项断言、多次导航、多处逐帧采样）。短超时会被杀在半途，日志看起来像失败。
+- **`checks.mjs` 单轮约 3–6 分钟**（108 项断言、多次导航、多处逐帧采样）。短超时会被杀在半途，日志看起来像失败。
 
 ---
 
@@ -199,7 +205,7 @@ npm test             # 20 项单元测试（解析器 + 主 Item 连续性）
 浏览器行为验证（需先起 `preview` 或 `dev`）：
 
 ```bash
-node .review/checks.mjs        http://127.0.0.1:4173/   # 107 项断言，主入口
+node .review/checks.mjs        http://127.0.0.1:4173/   # 108 项断言，主入口
 node .review/probe-page-end.mjs http://127.0.0.1:4173/  # 六视口场景边界
 node .review/shots.mjs         http://127.0.0.1:4173/   # 按状态定位的参考截图
 node .review/perf.mjs          http://127.0.0.1:4173/   # LCP / CLS / 传输量
@@ -291,7 +297,7 @@ src/content/{cn,en}.ts                    中文母稿 / 英文独立文案
 src/content/demo.ts                       确定性演示数据（主 Item 的唯一定义处）
 src/content/types.ts                      SiteCopy 契约
 src/styles/site.css                       各场景布局（含"成对参数"的交叉注释）
-.review/checks.mjs                        107 项断言，改完必跑
+.review/checks.mjs                        108 项断言，改完必跑
 .review/probe-views-pacing.mjs            Scene 04 钉住节奏（改 Scene 04 窗口后必跑）
 .review/scratch/probe-sync-exit.mjs       Scene 07 退出状态（改 Scene 07 拍点后必跑）
 .review/probe-page-end.mjs                六视口场景边界，改最后一节上方内容后必跑

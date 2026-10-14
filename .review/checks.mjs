@@ -351,6 +351,46 @@ try {
   check("mobile menu locks background scroll", menuOpen.bodyLocked);
   check("Escape closes the mobile menu", menuClosed.gone && menuClosed.bodyUnlocked);
 
+  /* The panel must survive the scrolled bar: `backdrop-filter` on
+     `.site-nav.is-scrolled` was becoming the containing block for the fixed
+     panel and collapsed it to a 52px strip, so the menu stopped working once the
+     reader had scrolled (user report, 2026-10-13). The older menu checks all ran
+     from the top of the page, which is exactly why they stayed green. */
+  await goTo(client, "/", 390, 844);
+  await evaluate(client, `window.scrollTo({ top: 1500, behavior: 'instant' })`);
+  await delay(700);
+  await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
+  await delay(500);
+  const scrolledMenu = await evaluate(
+    client,
+    `(() => {
+      const menu = document.querySelector('#site-menu');
+      const rect = menu ? menu.getBoundingClientRect() : null;
+      const links = menu
+        ? Array.from(menu.querySelectorAll('a')).filter((a) => {
+            const r = a.getBoundingClientRect();
+            return r.height > 0 && r.top < innerHeight && r.bottom > 0;
+          }).length
+        : 0;
+      return {
+        present: !!menu,
+        height: rect ? Math.round(rect.height) : 0,
+        top: rect ? Math.round(rect.top) : 0,
+        links,
+        navScrolled: document.querySelector('.site-nav').dataset.scrolled,
+      };
+    })()`,
+  );
+  check(
+    "the menu still opens after the page has scrolled",
+    scrolledMenu.present &&
+      scrolledMenu.navScrolled === "true" &&
+      scrolledMenu.height >= 600 &&
+      scrolledMenu.links >= 3,
+    JSON.stringify(scrolledMenu),
+  );
+  await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
+
   /* ---------- 5. Horizontal overflow across viewports ---------- */
   for (const [width, height] of [
     [1440, 900],

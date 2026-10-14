@@ -171,8 +171,19 @@
   }
   .site-menu {
     display: block;
-    position: fixed;
-    inset: var(--nav-height-mobile) 0 0 0;
+    /* Anchored to the STICKY BAR, not `position: fixed`. The scrolled bar gains
+       `backdrop-filter: blur(14px)` (`.site-nav.is-scrolled`), and a filtered
+       element becomes the containing block for fixed-position descendants — the
+       panel then resolved `inset: 64px 0 0 0` against the 65px bar itself and
+       collapsed to a 52px strip, so the menu was unusable the moment the page
+       had scrolled (user report 2026-10-13; reproduced: height 780px at the top
+       vs 52px after scrolling 1500px). The sticky bar is always pinned to the
+       viewport top, so anchoring there keeps the panel pinned too; the height is
+       explicit because `bottom: 0` would now mean the bar's bottom edge. */
+    position: absolute;
+    top: var(--nav-height-mobile);
+    inset-inline: 0;
+    height: calc(100svh - var(--nav-height-mobile));
     z-index: var(--z-menu);
     background: var(--canvas);
     padding: 20px var(--gutter) 32px;
