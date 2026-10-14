@@ -33,10 +33,18 @@ interface FragmentLayout {
    *  screen"), and a note resting near the middle of a 350px column read as
    *  hanging there (all three reported 2026-10-13). The five resting spots now
    *  alternate left / right — nothing settles on the centre line — and the move
-   *  is a settle, not a crossing: ≤16px horizontally, 28px of rise vertically,
-   *  one note at a time. */
+   *  is a settle, not a crossing: ≤16px horizontally, 28px of rise vertically.
+   */
   narrowFromX?: number;
   narrowFromY?: number;
+  /** When this note's own settle plays, in window progress, on a phone. The
+   *  slices are spread across the whole window rather than packed into its
+   *  first half: the reader reported the survivors looking "frozen about
+   *  halfway through, with the second half missing something" (2026-10-13), so
+   *  the last note still travelling is what carries the tail. Both notes that
+   *  dissolve do so *after* their own settle ends — the question first, then
+   *  老师说看第五章 (its dissolve starts at 0.70). */
+  narrowSettle?: [number, number];
   size: 0 | 1 | 2;
   opacity: number;
   /** Leaving fragments resolve out of the scene before it ends. */
@@ -60,17 +68,11 @@ const GHOST_LAYOUT: FragmentLayout = {
   narrowLeft: "10%",
   narrowFromX: 14,
   narrowFromY: 28,
+  narrowSettle: [0, 0.3],
   size: 1,
   opacity: 0.34,
   exitsAt: [0.34, 0.62],
 };
-
-/* Phone pacing: instead of the whole column moving as one, each note collapses
-   its own indent inside its own slice of the window — the question leads (it is
-   already in place when the section settles, and resolves out first), the four
-   notes follow in reading order. Same curve, same window, no new trigger. */
-const NARROW_STAGGER = 0.09;
-const NARROW_SPAN = 0.5;
 
 const LAYOUT: (FragmentLayout | null)[] = [
   {
@@ -83,6 +85,7 @@ const LAYOUT: (FragmentLayout | null)[] = [
     narrowLeft: "0%",
     narrowFromX: 14,
     narrowFromY: 28,
+    narrowSettle: [0.05, 0.55],
     size: 2,
     opacity: 1,
   },
@@ -96,6 +99,7 @@ const LAYOUT: (FragmentLayout | null)[] = [
     narrowLeft: "55%",
     narrowFromX: -12,
     narrowFromY: 28,
+    narrowSettle: [0.2, 0.7],
     size: 0,
     /* Was 0.78 — under the contrast review (P1-1) this whisper read below any
        usable level; 0.97 keeps it the softer of the two ink notes while
@@ -112,6 +116,7 @@ const LAYOUT: (FragmentLayout | null)[] = [
     narrowLeft: "5%",
     narrowFromX: 16,
     narrowFromY: 28,
+    narrowSettle: [0.3, 0.62],
     size: 1,
     opacity: 0.92,
     exitsAt: [0.7, 0.88],
@@ -126,6 +131,7 @@ const LAYOUT: (FragmentLayout | null)[] = [
     narrowLeft: "64%",
     narrowFromX: -12,
     narrowFromY: 28,
+    narrowSettle: [0.45, 1],
     size: 2,
     opacity: 1,
   },
@@ -192,13 +198,12 @@ export function SmallThingsScene() {
       const layout = LAYOUT[index];
       if (!layout) continue;
       /* Desktop keeps one calm monotonic convergence; phones give each note its
-         own slice of the same window so the indent collapses land one after
-         another rather than as a single block slide. */
-      const local = narrow
-        ? Math.min(
-            1,
-            Math.max(0, (progress - (layout === GHOST_LAYOUT ? 0 : (index + 1) * NARROW_STAGGER)) / NARROW_SPAN),
-          )
+         own slice of the same window (`narrowSettle`) so the settles land one
+         after another rather than as a single block slide, and the last note is
+         still travelling as the reader reaches the end of the scene. */
+      const slice = narrow ? layout.narrowSettle : undefined;
+      const local = slice
+        ? Math.min(1, Math.max(0, (progress - slice[0]) / Math.max(slice[1] - slice[0], 0.01)))
         : progress;
       const eased = local * local * (3 - 2 * local);
       const startX = narrow ? (layout.narrowFromX ?? layout.fromX) : layout.fromX;

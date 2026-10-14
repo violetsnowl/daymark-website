@@ -501,11 +501,11 @@ try {
       window.scrollTo({ top: docTop - 0.12 * vh, behavior: 'instant' });
       await pause();
       const primary = read();
-      /* The start sample sits close to the window's own start (progress ≈0.05)
-         so the travel measured is the whole settle: with a staggered start the
-         first note is already moving before the desktop's 0.15 point, and a
-         later sample would under-report every note's distance. */
-      window.scrollTo({ top: docTop - 0.45 * vh, behavior: 'instant' });
+      /* The start sample sits at the window's own start (progress 0) so the
+         travel measured is the whole settle: each note owns its own slice and
+         the question's slice is the earliest, so anything later would
+         under-report the distances. */
+      window.scrollTo({ top: docTop - 0.5 * vh, behavior: 'instant' });
       await pause();
       const early = read();
       window.scrollTo({ top: docTop + 0.70 * vh, behavior: 'instant' });
