@@ -14,17 +14,9 @@ export function SiteNav() {
   /** On the download page the CTA would point back at the page itself
    *  (it leads to /download/), so the top action becomes the way home. */
   const onDownloadPage = pathname.includes("/download");
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 64);
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
-  }, []);
 
   /* The menu is a functional overlay (W3 §6.5): Escape closes it and returns
      focus to the trigger, and the page behind it stops scrolling. */
@@ -35,12 +27,29 @@ export function SiteNav() {
       setMenuOpen(false);
       triggerRef.current?.focus();
     };
+    /* The sheet does not cover the page (user ruling, 2026-10-13): the page
+       below stays visible, but a tap there must only close the menu — nothing
+       underneath may react. `inert` gives that without a scrim, and keeps the
+       background out of the tab order while the dialog is open. */
+    const outside = Array.from(
+      document.querySelectorAll<HTMLElement>(".skip-link, main, footer"),
+    );
+    for (const node of outside) node.inert = true;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (panelRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    };
     document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown, true);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     panelRef.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      for (const node of outside) node.inert = false;
       document.body.style.overflow = previousOverflow;
     };
   }, [menuOpen]);
@@ -59,9 +68,15 @@ export function SiteNav() {
       }
       event.preventDefault();
       setMenuOpen(false);
-      target.scrollIntoView({
-        behavior: reducedMotion ? "auto" : "smooth",
-        block: "start",
+      /* Scroll on the next frame: the menu effect releases the body scroll lock
+         on the same commit, and scrolling while it is still locked would be a
+         no-op. One frame later the page glides to the section *below the sheet*,
+         which is the point of the small sheet (user ruling, 2026-10-13). */
+      window.requestAnimationFrame(() => {
+        target.scrollIntoView({
+          behavior: reducedMotion ? "auto" : "smooth",
+          block: "start",
+        });
       });
       window.history.replaceState(null, "", `#${sectionId}`);
     },
@@ -69,7 +84,7 @@ export function SiteNav() {
   );
 
   return (
-    <header className={`site-nav${scrolled ? " is-scrolled" : ""}`} data-scrolled={scrolled}>
+    <header className="site-nav">
       <div className="site-nav-inner container">
         <Link className="site-brand" to={href("/")} aria-label={copy.nav.homeLabel}>
           <BrandMark className="site-brand-mark" />
@@ -116,39 +131,37 @@ export function SiteNav() {
         </div>
       </div>
 
-      {menuOpen ? (
-        <div
-          id="site-menu"
-          ref={panelRef}
-          className="site-menu"
-          tabIndex={-1}
-          role="dialog"
-          aria-modal="true"
-          aria-label={copy.nav.menuOpen}
-        >
-          <nav className="site-menu-links" aria-label={copy.nav.homeLabel}>
-            {copy.nav.anchors.map((anchor) => (
-              <a
-                key={anchor.id}
-                href={anchor.href}
-                onClick={(event) => goToSection(event, anchor.id)}
-              >
-                {anchor.label}
-              </a>
-            ))}
-          </nav>
-          <div className="site-menu-foot">
-            <LanguageSwitch />
-            {onDownloadPage ? (
-              <PrimaryButton to={href("/")}>{copy.nav.backHome}</PrimaryButton>
-            ) : (
-              <PrimaryButton to={href("/download/")}>
-                {copy.nav.enterApp}
-              </PrimaryButton>
-            )}
-          </div>
+      <div
+        id="site-menu"
+        ref={panelRef}
+        className="site-menu"
+        data-open={menuOpen ? "true" : "false"}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={copy.nav.menuOpen}
+        aria-hidden={menuOpen ? undefined : true}
+      >
+        <nav className="site-menu-links" aria-label={copy.nav.homeLabel}>
+          {copy.nav.anchors.map((anchor) => (
+            <a
+              key={anchor.id}
+              href={anchor.href}
+              onClick={(event) => goToSection(event, anchor.id)}
+            >
+              {anchor.label}
+            </a>
+          ))}
+        </nav>
+        <div className="site-menu-foot">
+          <LanguageSwitch />
+          {onDownloadPage ? (
+            <PrimaryButton to={href("/")}>{copy.nav.backHome}</PrimaryButton>
+          ) : (
+            <PrimaryButton to={href("/download/")}>{copy.nav.enterApp}</PrimaryButton>
+          )}
         </div>
-      ) : null}
+      </div>
     </header>
   );
 }

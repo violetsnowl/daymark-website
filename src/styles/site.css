@@ -14,19 +14,13 @@
   position: sticky;
   top: 0;
   z-index: var(--z-nav);
-  border-bottom: 1px solid transparent;
-  transition:
-    background-color var(--motion-panel) var(--ease-out),
-    border-color var(--motion-panel) var(--ease-out),
-    backdrop-filter var(--motion-panel) var(--ease-out);
-}
-
-/* Before scrolling the bar merges with the canvas; after 64px it gains a
-   slightly more opaque surface. It never becomes a dark toolbar (W3 §6.3). */
-.site-nav.is-scrolled {
-  background: rgb(243 240 233 / 82%);
-  backdrop-filter: blur(14px);
-  border-bottom-color: rgb(217 215 207 / 72%);
+  /* One material, from the first pixel of the page to the last (user ruling
+     2026-10-13, overriding W3 §6.3's two-state bar): always the frosted
+     surface, never a switch. Strength lives in tokens. */
+  background: rgb(243 240 233 / var(--nav-glass-alpha));
+  backdrop-filter: blur(var(--nav-glass-blur));
+  -webkit-backdrop-filter: blur(var(--nav-glass-blur));
+  border-bottom: 1px solid var(--glass-edge);
 }
 
 .site-nav-inner {
@@ -169,45 +163,83 @@
   .site-nav-menu-trigger {
     display: inline-flex;
   }
+  /* A small sheet pulled out of the bar (user ruling, 2026-10-13): same glass
+     as the bar but a little more opaque so its links stay readable, as tall as
+     its content, never a full screen — the page below stays visible and the
+     jump it triggers can be watched there.
+     Anchored to the STICKY BAR, not `position: fixed`: a `backdrop-filter`
+     element becomes the containing block for fixed descendants, which once
+     collapsed this panel to a 52px strip once the page had scrolled (REVIEW
+     §0P). The bar is always pinned to the viewport top, so anchoring there
+     keeps the sheet pinned with it. */
   .site-menu {
     display: block;
-    /* Anchored to the STICKY BAR, not `position: fixed`. The scrolled bar gains
-       `backdrop-filter: blur(14px)` (`.site-nav.is-scrolled`), and a filtered
-       element becomes the containing block for fixed-position descendants — the
-       panel then resolved `inset: 64px 0 0 0` against the 65px bar itself and
-       collapsed to a 52px strip, so the menu was unusable the moment the page
-       had scrolled (user report 2026-10-13; reproduced: height 780px at the top
-       vs 52px after scrolling 1500px). The sticky bar is always pinned to the
-       viewport top, so anchoring there keeps the panel pinned too; the height is
-       explicit because `bottom: 0` would now mean the bar's bottom edge. */
     position: absolute;
     top: var(--nav-height-mobile);
     inset-inline: 0;
-    height: calc(100svh - var(--nav-height-mobile));
     z-index: var(--z-menu);
-    background: var(--canvas);
-    padding: 20px var(--gutter) 32px;
+    max-height: min(60svh, 460px);
     overflow-y: auto;
+    background: rgb(243 240 233 / var(--menu-glass-alpha));
+    backdrop-filter: blur(var(--nav-glass-blur));
+    -webkit-backdrop-filter: blur(var(--nav-glass-blur));
+    border-bottom: 1px solid var(--glass-edge);
+    box-shadow: 0 22px 40px -28px rgb(24 32 27 / 26%);
+    padding: 6px var(--gutter) 16px;
+    /* Closed: pulled up behind the bar and faded out, so opening and closing
+       are both visible movements rather than a cut. */
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform var(--motion-menu-close) var(--ease-out),
+      opacity var(--motion-menu-close) var(--ease-out),
+      visibility 0s linear var(--motion-menu-close);
   }
+  .site-menu[data-open="true"] {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      transform var(--motion-menu-open) var(--ease-out),
+      opacity var(--motion-menu-open) var(--ease-out),
+      visibility 0s;
+  }
+  /* The anchors keep the desktop bar's own look (type scale, ink, hover tint),
+     in one centred row — the mobile-only 19px stacked list is gone. */
   .site-menu-links {
-    display: grid;
-    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 2px 6px;
+    border-bottom: 1px solid var(--line);
   }
   .site-menu-links a {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    min-height: 56px;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink);
-    font-size: 19px;
+    min-height: 44px;
+    padding: 0 13px;
+    border-radius: 10px;
+    color: var(--ink-soft);
+    font-size: var(--type-nav);
     text-decoration: none;
+    transition:
+      color var(--motion-fast) var(--ease-out),
+      background-color var(--motion-fast) var(--ease-out);
+  }
+  .site-menu-links a:hover {
+    color: var(--accent-strong);
+    background: rgb(255 253 248 / 58%);
   }
   .site-menu-foot {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-top: 26px;
+    margin-top: 14px;
   }
 }
 

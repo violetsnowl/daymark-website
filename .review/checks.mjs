@@ -304,7 +304,13 @@ try {
     `first: ${tabOrder.seen.slice(0, 6).join(" → ")}`,
   );
 
-  /* ---------- 4c. Mobile menu is reachable and closes on Escape ---------- */
+  /* ---------- 4c. Mobile menu: a small sheet pulled out of the bar ----------
+     User ruling (2026-10-13): the panel is not a full screen — it is as tall as
+     its content, wears the bar's own glass, and the page below stays visible so
+     the jump it triggers can be watched there. Every menu assertion is now also
+     made from the *scrolled* state: the older checks all ran from the top of the
+     page and stayed green while the panel was collapsed to a 52px strip
+     (REVIEW §0P / §0Q). */
   await goTo(client, "/", 390, 844);
   const triggerInfo = await evaluate(
     client,
@@ -319,20 +325,95 @@ try {
       };
     })()`,
   );
-  await delay(500);
+  await delay(600);
   const menuOpen = await evaluate(
     client,
     `(() => {
-      const panel = document.querySelector('#site-menu');
+      const menu = document.querySelector('#site-menu');
+      const nav = document.querySelector('.site-nav');
+      const rect = menu.getBoundingClientRect();
+      const cs = getComputedStyle(menu);
+      const anchors = Array.from(menu.querySelectorAll('.site-menu-links a')).map((a) => {
+        const r = a.getBoundingClientRect();
+        return { text: a.textContent.trim(), top: Math.round(r.top), left: Math.round(r.left), width: Math.round(r.width), height: Math.round(r.height) };
+      });
+      const last = anchors[anchors.length - 1];
       return {
-        open: !!panel,
-        links: panel ? panel.querySelectorAll('a').length : 0,
-        buttons: panel ? panel.querySelectorAll('button').length : 0,
+        open: menu.dataset.open === 'true',
+        visible: cs.visibility === 'visible',
+        links: menu.querySelectorAll('a').length,
+        buttons: menu.querySelectorAll('button').length,
         focusInside: document.activeElement?.id === 'site-menu',
         bodyLocked: document.body.style.overflow === 'hidden',
+        top: Math.round(rect.top),
+        height: Math.round(rect.height),
+        panelCentre: Math.round(rect.width / 2),
+        navHeight: Math.round(nav.getBoundingClientRect().height),
+        viewport: window.innerHeight,
+        glass: { background: cs.backgroundColor, backdrop: cs.backdropFilter || cs.webkitBackdropFilter },
+        row: {
+          count: anchors.length,
+          oneRow: anchors.length === 4 && anchors.every((a) => Math.abs(a.top - anchors[0].top) <= 2),
+          centre: anchors.length === 4 ? Math.round((anchors[0].left + last.left + last.width) / 2) : 0,
+          minTouch: anchors.length ? Math.min(...anchors.map((a) => a.height)) : 0,
+        },
       };
     })()`,
   );
+  check(
+    "mobile menu opens with all anchors",
+    menuOpen.open && menuOpen.visible && menuOpen.links >= 3,
+    `${menuOpen.links} links, ${menuOpen.buttons} buttons (trigger ${triggerInfo.display} @${triggerInfo.innerWidth}px)`,
+  );
+  check(
+    "the sheet is as tall as its content, not a screen",
+    menuOpen.height >= 80 &&
+      menuOpen.height <= menuOpen.viewport * 0.4 &&
+      Math.abs(menuOpen.top - menuOpen.navHeight) <= 1,
+    `${menuOpen.height}px tall, top ${menuOpen.top} = nav ${menuOpen.navHeight}, viewport ${menuOpen.viewport}`,
+  );
+  check(
+    "the sheet wears the bar's glass",
+    String(menuOpen.glass.backdrop).includes('blur') && menuOpen.glass.background.startsWith('rgba'),
+    JSON.stringify(menuOpen.glass),
+  );
+  check(
+    "the four anchors sit in one centred row, and stay tappable",
+    menuOpen.row.oneRow &&
+      Math.abs(menuOpen.row.centre - menuOpen.panelCentre) <= 4 &&
+      menuOpen.row.minTouch >= 44,
+    `row ${menuOpen.row.count}, centre ${menuOpen.row.centre} vs panel ${menuOpen.panelCentre}, min touch ${menuOpen.row.minTouch}px`,
+  );
+  check("mobile menu moves focus inside", menuOpen.focusInside);
+  check("mobile menu locks background scroll", menuOpen.bodyLocked);
+
+  /* Tapping the page below the sheet only closes it: the page stays visible but
+     must not react (the story behind the small sheet, user ruling). */
+  await evaluate(
+    client,
+    `(() => {
+      const el = document.elementFromPoint(innerWidth / 2, innerHeight - 40) ?? document.body;
+      el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+      return el.tagName;
+    })()`,
+  );
+  await delay(400);
+  const afterOutside = await evaluate(
+    client,
+    `(() => {
+      const menu = document.querySelector('#site-menu');
+      return { open: menu.dataset.open, visibility: getComputedStyle(menu).visibility, bodyUnlocked: document.body.style.overflow !== 'hidden' };
+    })()`,
+  );
+  check(
+    "tapping the page below the sheet closes it",
+    afterOutside.open === 'false' && afterOutside.visibility === 'hidden' && afterOutside.bodyUnlocked,
+    JSON.stringify(afterOutside),
+  );
+
+  /* Escape closes it too (the sheet stays mounted so the close can animate). */
+  await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
+  await delay(500);
   await evaluate(
     client,
     `document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`,
@@ -340,56 +421,111 @@ try {
   await delay(400);
   const menuClosed = await evaluate(
     client,
-    `({ gone: !document.querySelector('#site-menu'), bodyUnlocked: document.body.style.overflow !== 'hidden' })`,
+    `(() => {
+      const menu = document.querySelector('#site-menu');
+      return { gone: menu.dataset.open === 'false' && getComputedStyle(menu).visibility === 'hidden', bodyUnlocked: document.body.style.overflow !== 'hidden' };
+    })()`,
+  );
+  check("Escape closes the mobile menu", menuClosed.gone && menuClosed.bodyUnlocked, JSON.stringify(menuClosed));
+
+  /* Choosing an anchor closes the sheet and the page really travels to the
+     section — visibly, below the sheet (user ruling). */
+  const beforeJump = await evaluate(client, `Math.round(scrollY)`);
+  await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
+  await delay(500);
+  await evaluate(
+    client,
+    `Array.from(document.querySelectorAll('.site-menu-links a')).find((a) => a.textContent.includes('怎么工作')).click()`,
+  );
+  await delay(1800);
+  const afterJump = await evaluate(
+    client,
+    `(() => ({
+      y: Math.round(scrollY),
+      open: document.querySelector('#site-menu').dataset.open,
+      targetTop: Math.round(document.querySelector('#capture').getBoundingClientRect().top),
+    }))()`,
   );
   check(
-    "mobile menu opens with all anchors",
-    menuOpen.open && menuOpen.links >= 3,
-    `${menuOpen.links} links, ${menuOpen.buttons} buttons (trigger ${triggerInfo.display} @${triggerInfo.innerWidth}px)`,
+    "choosing an anchor closes the sheet and the page moves to the section",
+    afterJump.open === 'false' && afterJump.y > beforeJump + 400 && Math.abs(afterJump.targetTop) <= 260,
+    `${beforeJump} → ${afterJump.y}, #capture top ${afterJump.targetTop}, open=${afterJump.open}`,
   );
-  check("mobile menu moves focus inside", menuOpen.focusInside);
-  check("mobile menu locks background scroll", menuOpen.bodyLocked);
-  check("Escape closes the mobile menu", menuClosed.gone && menuClosed.bodyUnlocked);
 
-  /* The panel must survive the scrolled bar: `backdrop-filter` on
-     `.site-nav.is-scrolled` was becoming the containing block for the fixed
-     panel and collapsed it to a 52px strip, so the menu stopped working once the
-     reader had scrolled (user report, 2026-10-13). The older menu checks all ran
-     from the top of the page, which is exactly why they stayed green. */
+  /* The panel must survive the scrolled bar — the old bug (REVIEW §0P). */
   await goTo(client, "/", 390, 844);
   await evaluate(client, `window.scrollTo({ top: 1500, behavior: 'instant' })`);
   await delay(700);
   await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
-  await delay(500);
+  await delay(600);
   const scrolledMenu = await evaluate(
     client,
     `(() => {
       const menu = document.querySelector('#site-menu');
-      const rect = menu ? menu.getBoundingClientRect() : null;
-      const links = menu
-        ? Array.from(menu.querySelectorAll('a')).filter((a) => {
-            const r = a.getBoundingClientRect();
-            return r.height > 0 && r.top < innerHeight && r.bottom > 0;
-          }).length
-        : 0;
+      const rect = menu.getBoundingClientRect();
+      const cs = getComputedStyle(menu);
+      const links = Array.from(menu.querySelectorAll('a')).filter((a) => {
+        const r = a.getBoundingClientRect();
+        return r.height > 0 && r.top < innerHeight && r.bottom > 0;
+      }).length;
       return {
-        present: !!menu,
-        height: rect ? Math.round(rect.height) : 0,
-        top: rect ? Math.round(rect.top) : 0,
+        open: menu.dataset.open,
+        visible: cs.visibility === 'visible',
+        height: Math.round(rect.height),
+        top: Math.round(rect.top),
         links,
-        navScrolled: document.querySelector('.site-nav').dataset.scrolled,
       };
     })()`,
   );
   check(
     "the menu still opens after the page has scrolled",
-    scrolledMenu.present &&
-      scrolledMenu.navScrolled === "true" &&
-      scrolledMenu.height >= 600 &&
-      scrolledMenu.links >= 3,
+    scrolledMenu.open === 'true' && scrolledMenu.visible && scrolledMenu.height >= 100 && scrolledMenu.links >= 3,
     JSON.stringify(scrolledMenu),
   );
   await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
+  await delay(300);
+
+  /* Reduced motion: the sheet appears without animating. */
+  await goTo(client, "/", 390, 844, true);
+  await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
+  await delay(120);
+  const reducedMenu = await evaluate(
+    client,
+    `(() => {
+      const menu = document.querySelector('#site-menu');
+      const cs = getComputedStyle(menu);
+      return { open: menu.dataset.open, visible: cs.visibility === 'visible', transition: cs.transitionDuration };
+    })()`,
+  );
+  check(
+    "reduced motion opens the sheet without animating",
+    reducedMenu.open === 'true' && reducedMenu.visible && parseFloat(reducedMenu.transition) <= 0.001,
+    JSON.stringify(reducedMenu),
+  );
+
+  /* ---------- 4d. One top-bar material, always ----------
+     User ruling (2026-10-13, overriding W3 §6.3's two-state bar): the bar used to
+     be transparent at the top and frost after 64px, and the seam was visible. */
+  await goTo(client, "/", 1440, 900);
+  const materialTop = await evaluate(
+    client,
+    `(() => { const cs = getComputedStyle(document.querySelector('.site-nav')); return { bg: cs.backgroundColor, blur: cs.backdropFilter || cs.webkitBackdropFilter, border: cs.borderBottomColor }; })()`,
+  );
+  await evaluate(client, `window.scrollTo({ top: 3000, behavior: 'instant' })`);
+  await delay(600);
+  const materialScrolled = await evaluate(
+    client,
+    `(() => { const cs = getComputedStyle(document.querySelector('.site-nav')); return { bg: cs.backgroundColor, blur: cs.backdropFilter || cs.webkitBackdropFilter, border: cs.borderBottomColor, attr: document.querySelector('.site-nav').getAttribute('data-scrolled') }; })()`,
+  );
+  check(
+    "the top bar has one glass state from the first pixel",
+    String(materialTop.blur).includes('blur') &&
+      materialTop.bg === materialScrolled.bg &&
+      materialTop.blur === materialScrolled.blur &&
+      materialTop.border === materialScrolled.border &&
+      materialScrolled.attr === null,
+    `top ${materialTop.bg} / ${materialTop.blur} · scrolled ${materialScrolled.bg} / ${materialScrolled.blur}`,
+  );
 
   /* ---------- 5. Horizontal overflow across viewports ---------- */
   for (const [width, height] of [

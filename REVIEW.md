@@ -2,7 +2,7 @@
 
 **阶段**：W4 Stage C（已验收）+ **Stage D（已验收，Scene 06 按要求修订）** + **Stage E（A Day / Closing / 完整 Footer）**
 **W3 Prototype Baseline**：已按裁决锁定
-**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **108/108 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N、Scene 01 移动端本地化 §0O）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
+**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **115/115 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N、Scene 01 移动端本地化 §0O）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
 **审计约定**：本文件是项目的总审计——每轮改动后把最新情况、问题与实测写进对应小节；§0 是当前生效参数，§0B–§0J 保留各轮修复过程。
 
 ---
@@ -531,6 +531,42 @@ progress 0 → 钉住       0px（进度 0 与钉住重合）
 - 待裁决点：**窄屏三种视角的默认顺序是否仍为 总览→课程→日程（默认总览）**；768–1023 是否与手机同一形态（建议同一形态，避免第三种布局）。
 
 **建议顺序**：① Scene 04 单卡 + 可点标签 → ② 窄屏语言切换直达 → ③ 768–1023 逐场景动效走查（含 sticky 关停后的节奏）→ ④ Hero 手机端构成（产品窗裁断/间距）→ ⑤ 本轮收尾（impeccable 表 + REVIEW + 断言）。
+
+---
+
+## 0Q. 顶部导航与手机端菜单（2026-10-13，用户裁决；插曲轮）
+
+**背景**：§0P 修掉「滚动后菜单失效」之后，用户就导航材质与手机端菜单面板提出三项改造（本插曲；做完验收即回手机专项主线 ①Scene 04）。
+
+**用户裁决（原话意）**
+1. 手机端菜单面板不占满屏：做成**从顶部拉出的半屏面板**——沿用导航条材质、高度按内容实测、展开/收起有轻量动画（不瞬切）；面板里目录改为**沿用电脑端样式的一行四列（居中）**，语言切换与「进入 Daymark」仍在下一行；面板因此更矮，「点击目录跳转可以在下面未被遮挡的原页面上直观看到」。
+2. 导航条毛玻璃**略微加强一丝丝**（克制），电脑/手机双端同步。
+3. 导航材质**常设**：从首屏起就是毛玻璃，不再有「滚动到 64px 时切换一次」的切换感；全局只有这一个材质状态。（**覆盖母稿 W3 §6.3** 的「滚动前与画布融合、滚动后略实」。）
+
+**改动**
+- `SiteNav.tsx`：删除 `scrolled` 状态与 `data-scrolled`（单一材质）；菜单面板改为常驻 DOM + `data-open` 驱动（开合都有动画）；新增「点面板外关闭」与「面板打开时背景 `inert`」（下方页面可见但不会误触）；目录链接跳转改到**下一帧**再滚动（先释放滚动锁、再滚动 → 跳转过程在面板下方可见）。
+- `site.css`：`.site-nav` 单一玻璃材质（读 `--nav-glass-*`）；删除 `.site-nav.is-scrolled`；窄屏 `.site-menu` = 锚在 sticky 导航条上的玻璃小面板（`max-height: min(60svh, 460px)`，内容自适应、超出内部滚动；下缘一道极淡投影；关闭态 `translateY(-100%) + opacity 0 + visibility hidden`）；目录行改 `flex` 居中一行、链接沿用电脑端视觉（`--type-nav` / `--ink-soft` / 圆角 hover 底）但点击高 ≥44px；操作行照旧。
+- `tokens.css`：新增 `--nav-glass-alpha` / `--nav-glass-blur` / `--menu-glass-alpha` / `--glass-edge` / `--motion-menu-open` / `--motion-menu-close`。
+
+**实测（390×844 / 1440×900，生产构建）**
+
+```text
+面板高度           130px（视口 15%）；顶边 64 = 导航高；关闭态上移 -130px + opacity 0
+开合动画           打开 +90ms 采样：translateY -46.85px / opacity 0.64（确实是动画，不是瞬切）
+目录行             4 条同排、行中心 195 = 面板中心 195、每条点击高 44px
+点面板外           关闭 ✓（背景 inert，下方页面不响应）
+Escape             关闭 + 背景解锁 ✓
+链接跳转           scrollY 0 → 1592，#capture 顶边 184 ✓（跳转在面板下方可见）
+滚动 1500px 后开   面板 130px 正常 ✓（旧 bug 的回归断言保留）
+reduced motion     打开无动画（transition 1e-05s）✓
+导航材质           首屏与滚动 3000px 处计算样式完全一致（rgba(243,240,233,0.76) + blur(18px)）✓；data-scrolled 属性已不存在 ✓
+```
+
+**玻璃强度候选**：A 档 = `blur 18px + 底色 76%`；B 档 = `blur 20px + 底色 72%`。对比图在本机 scratch（`nav-shots/compare-glass-desktop.png`、`compare-glass-mobile.png`）；**当前生效 = A 档**，改选 B 只需改 tokens 一行。
+
+**断言**：新增 `the sheet is as tall as its content, not a screen`、`the sheet wears the bar's glass`、`the four anchors sit in one centred row, and stay tappable`、`tapping the page below the sheet closes it`、`choosing an anchor closes the sheet and the page moves to the section`、`reduced motion opens the sheet without animating`、`the top bar has one glass state from the first pixel`；改写 `Escape closes the mobile menu` 与 `the menu still opens after the page has scrolled`（面板常驻 DOM）。总数 108 → **115**。
+
+**验证**：`npm run typecheck` ✓ / `npm run build` ✓ / `node .review/checks.mjs` **115/115**。
 
 ---
 

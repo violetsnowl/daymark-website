@@ -49,6 +49,19 @@
   --motion-short: 180ms;
   --motion-medium: 240ms;
   --motion-panel: 280ms;
+  --motion-menu-open: 240ms;
+  --motion-menu-close: 180ms;
+
+  /* --- Top-bar glass (user ruling, 2026-10-13) -----------------------------
+     One material, always: the bar used to be transparent at the top and gain a
+     frosted surface at the 64px scroll threshold, and the switch was visible as
+     a seam. The menu sheet shares the blur, sits a little more opaque than the
+     bar so its links stay readable, and pulls out of the bar downward. Values
+     live here so the strength can be compared without touching rules. */
+  --nav-glass-alpha: 76%;
+  --nav-glass-blur: 18px;
+  --menu-glass-alpha: 88%;
+  --glass-edge: rgb(217 215 207 / 72%);
   --motion-slow: 360ms;
   --motion-narrative: 640ms;
   --motion-narrative-long: 860ms;
