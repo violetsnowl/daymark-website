@@ -1579,7 +1579,11 @@
    the environment changes underneath it (W4 §4.4). */
 .views-panels {
   display: grid;
-  min-height: 250px;
+  /* The pinned object's measured height feeds the stage geometry (ViewsScene
+     writes the stage height from it), so the card must keep the size it had
+     before the band was released: the freed 60px stays inside the card, below
+     the list. */
+  min-height: 352px;
 }
 
 /* The identification mark W4 §4.4 asks for: the same accent-soft wash follows
@@ -1635,13 +1639,17 @@
 .views-context {
   display: grid;
   gap: 12px;
-  /* Bottom-aligned (user ruling, 2026-10-13): the band keeps the item on its
-     line while the projection crossfades, but its content sits against the list
-     — the leftover space reads as space above a section label instead of a
-     105px hole between 「未完成」 and the first row that belongs to it. The
-     window's own box is untouched. */
+  /* Bottom-aligned: the band's content sits against the list, so the space reads
+     as space above a section label, never between the label and its own rows. */
   align-content: end;
-  min-height: 124px;
+  /* The band reserves exactly what 「日程」's grid needs — days row + hours scale
+     + track ≈ 62px at every desktop width — so all three projections keep the
+     item on ONE line while they crossfade (W4 §4.3). It used to reserve 124px,
+     a 150px-era constant: that left 105px of dead air between 「未完成」 and its
+     list while the grid under it had long since been compressed (measured 62px).
+     60px released here shows up below the list instead, inside the card (user
+     ruling, 2026-10-15: content to the top, blank to the bottom). */
+  min-height: 64px;
   box-sizing: border-box;
 }
 
@@ -1699,12 +1707,19 @@
 /* Narrow screens: one product window, and the switcher above it is the section's
    control (user ruling, 2026-10-13 — this replaced a ~2240px stack of three
    identical windows). */
-/* The 124px band only has a job where the projections crossfade against a scroll
+/* The band only has a job where the projections crossfade against a scroll
    (desktop pinned). Where the reader *chooses* a projection with a tap, the band
    is dead space: releasing it takes 80px off the window and lets the phone show
    the switcher and the whole window on one screen (user report, 2026-10-13). */
 .views-flow .views-context {
   min-height: 0;
+}
+
+/* The card's height floor: 352px holds the pinned window at its measured size.
+   The tap branch never had that job — it keeps the floor it was accepted with,
+   so nothing moves on a phone. */
+.views-flow .views-panels {
+  min-height: 250px;
 }
 .views-flow {
   display: grid;

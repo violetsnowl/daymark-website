@@ -1067,9 +1067,28 @@ try {
     })()`,
   );
   check(
-    "the section label sits against its list on desktop too (band kept)",
-    desktopGap.gap <= 24 && desktopGap.band >= 100,
-    `label→list ${desktopGap.gap}px, band ${desktopGap.band}px`,
+    "the section label sits against its list on desktop too",
+    desktopGap.gap <= 24 && desktopGap.band <= 80,
+    `label→list ${desktopGap.gap}px, band ${desktopGap.band}px (the band reserves only what 「日程」's grid needs)`,
+  );
+
+  /* The band exists so the three projections keep the item on ONE line while they
+     crossfade (W4 §4.3). Guard the invariant itself, not just the band: if any
+     projection's context outgrows the band, the item would jump mid-fade. */
+  const lines = await evaluate(
+    client,
+    `(() => {
+      const offsets = Array.from(document.querySelectorAll('#views .views-panel')).map((p) => {
+        const row = p.querySelector('.item-row');
+        return Math.round(row.getBoundingClientRect().top - p.getBoundingClientRect().top);
+      });
+      return { offsets, spread: Math.max(...offsets) - Math.min(...offsets) };
+    })()`,
+  );
+  check(
+    "all three projections still put the item on one line",
+    lines.spread <= 2,
+    `offsets ${lines.offsets.join(" / ")}px (spread ${lines.spread}px)`,
   );
 
   /* ---------- 10. Scene 05 — Reminder (W4 §5) ---------- */

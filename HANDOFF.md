@@ -36,7 +36,7 @@
 | `npm run typecheck` | 通过 |
 | `npm test` | 20/20 |
 | `npm run build` | 通过（2026-10-12 复核；产物体积以当时 `npm run build` 输出为准） |
-| `node .review/checks.mjs http://127.0.0.1:4173/` | **123/123** |
+| `node .review/checks.mjs http://127.0.0.1:4173/` | **124/124** |
 | `node .review/probe-page-end.mjs http://127.0.0.1:4173/` | 六视口全通过 |
 | `node .review/probe-views-pacing.mjs http://127.0.0.1:4173/` | Scene 04：整场景居中钉住（进度 0 = 钉住、进度 1 = 释放）、行程 400px（1:2:1 = 100/200/100px）、翻页 0.25/0.75（REVIEW §0D） |
 | `node .review/scratch/probe-fragments.mjs http://127.0.0.1:4173/` | Scene 01：五条片段可见窗口 + 收敛漂移（0px 幽灵修复；位移 39–68px；REVIEW §0G） |
@@ -178,7 +178,7 @@
 - **测试视口 900px 高时文档偏短**，Scene 07/08 靠后的场景可能滚不到自己的终点 —— 那是页面短的必然，不是场景缺陷。判断"是否完成"要用 `probe-page-end.mjs` 的六视口，不要在 `checks.mjs` 里用固定偏移推断。
 - **服务挂掉时症状是"选择器找不到"，不是"连不上"**：脚本先连浏览器、拿到空白文档，然后在 `querySelector(...).getBoundingClientRect()` 上抛 `TypeError: Cannot read properties of null`。看到这个错误**先确认 5173 / 4173 还在响应**，再怀疑代码 —— 收尾时就因此误判了一轮。
 - **等待要看"应用渲染完成"而非"页面加载完成"**：`goTo()` 现在轮询 `.hero` 与 `#capture` 是否已存在。固定延时在机器有负载时不够，症状同样是"选择器找不到"。
-- **`checks.mjs` 单轮约 3–6 分钟**（123 项断言、多次导航、多处逐帧采样）。短超时会被杀在半途，日志看起来像失败。
+- **`checks.mjs` 单轮约 3–6 分钟**（124 项断言、多次导航、多处逐帧采样）。短超时会被杀在半途，日志看起来像失败。
 
 ---
 
@@ -206,7 +206,7 @@ npm test             # 20 项单元测试（解析器 + 主 Item 连续性）
 浏览器行为验证（需先起 `preview` 或 `dev`）：
 
 ```bash
-node .review/checks.mjs        http://127.0.0.1:4173/   # 123 项断言，主入口
+node .review/checks.mjs        http://127.0.0.1:4173/   # 124 项断言，主入口
 node .review/probe-page-end.mjs http://127.0.0.1:4173/  # 六视口场景边界
 node .review/shots.mjs         http://127.0.0.1:4173/   # 按状态定位的参考截图
 node .review/perf.mjs          http://127.0.0.1:4173/   # LCP / CLS / 传输量
@@ -298,7 +298,7 @@ src/content/{cn,en}.ts                    中文母稿 / 英文独立文案
 src/content/demo.ts                       确定性演示数据（主 Item 的唯一定义处）
 src/content/types.ts                      SiteCopy 契约
 src/styles/site.css                       各场景布局（含"成对参数"的交叉注释）
-.review/checks.mjs                        123 项断言，改完必跑
+.review/checks.mjs                        124 项断言，改完必跑
 .review/probe-views-pacing.mjs            Scene 04 钉住节奏（改 Scene 04 窗口后必跑）
 .review/scratch/probe-sync-exit.mjs       Scene 07 退出状态（改 Scene 07 拍点后必跑）
 .review/probe-page-end.mjs                六视口场景边界，改最后一节上方内容后必跑
