@@ -1050,6 +1050,28 @@ try {
     String(viewsCaption),
   );
 
+  /* The band stays on desktop (the crossfade needs the item on its line) but its
+     content sits against the list — the space reads above the label instead of
+     between the label and its first row (user ruling, 2026-10-13). */
+  const desktopGap = await evaluate(
+    client,
+    `(() => {
+      const panel = document.querySelector('#views .views-panel[data-panel="overview"]');
+      const label = panel.querySelector('.product-section-label');
+      const row = panel.querySelector('.item-row');
+      const context = panel.querySelector('.views-context');
+      return {
+        gap: Math.round(row.getBoundingClientRect().top - label.getBoundingClientRect().bottom),
+        band: Math.round(context.getBoundingClientRect().height),
+      };
+    })()`,
+  );
+  check(
+    "the section label sits against its list on desktop too (band kept)",
+    desktopGap.gap <= 24 && desktopGap.band >= 100,
+    `label→list ${desktopGap.gap}px, band ${desktopGap.band}px`,
+  );
+
   /* ---------- 10. Scene 05 — Reminder (W4 §5) ---------- */
   await goTo(client, "/", 1440, 900);
   const reminder = await evaluate(
@@ -1886,6 +1908,26 @@ try {
       phoneViews.tabs[0].pressed === "true",
     phoneViews.tabs.map((tab) => `${tab.label}:${tab.pressed}/${tab.height}px`).join(" "),
   );
+  const phoneGap = await evaluate(
+    client,
+    `(() => {
+      const panel = document.querySelector('#views .views-panel[data-panel="overview"]');
+      const label = panel.querySelector('.product-section-label');
+      const row = panel.querySelector('.item-row');
+      return {
+        gap: Math.round(row.getBoundingClientRect().top - label.getBoundingClientRect().bottom),
+        windowHeight: Math.round(document.querySelector('#views .product-window').getBoundingClientRect().height),
+      };
+    })()`,
+  );
+  /* The label belongs to the list, not to a 124px band: on a phone the band is
+     released and the window loses 80px (user ruling, 2026-10-13). */
+  check(
+    "the section label sits against its list on a phone",
+    phoneGap.gap <= 24 && phoneGap.windowHeight <= 460,
+    `label→list ${phoneGap.gap}px, window ${phoneGap.windowHeight}px`,
+  );
+
   await evaluate(client, `document.querySelectorAll('#views .view-switcher-tab')[2].click()`);
   await delay(700);
   const switched = await evaluate(

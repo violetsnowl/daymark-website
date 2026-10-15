@@ -2,7 +2,7 @@
 
 **阶段**：W4 Stage C（已验收）+ **Stage D（已验收，Scene 06 按要求修订）** + **Stage E（A Day / Closing / 完整 Footer）**
 **W3 Prototype Baseline**：已按裁决锁定
-**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **121/121 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N、Scene 01 移动端本地化 §0O）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
+**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **123/123 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N、Scene 01 移动端本地化 §0O）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
 **审计约定**：本文件是项目的总审计——每轮改动后把最新情况、问题与实测写进对应小节；§0 是当前生效参数，§0B–§0J 保留各轮修复过程。
 
 ---
@@ -639,6 +639,30 @@ reduced motion     打开无动画（transition 1e-05s）✓
 **断言**：`reduced motion shows the section as one window with a switcher`、`every projection marks the item without motion`（3 行标记、每投影 1 行）、`reduced motion switches projections without a transition`、`a phone shows one product window and a short section, not three copies`（≤1700px 的守卫，防止长链回归）、`the projections are chosen, not scrolled: three buttons, ≥44px, one pressed`、`tapping a projection swaps the panel, its mark and its caption`。
 
 **验证**：`npm run typecheck` ✓ / `npm run build` ✓ / `node .review/checks.mjs` **121/121**。
+
+---
+
+### 补丁（同日，验收后）：产品窗内部「分区标签 → 第一条事项」之间的空白
+
+**用户报告**：手机端与电脑端的产品窗里，「未完成」和它下面第一条事项之间都有一大片空白（截图两处都指出来了）；要求手机端**去掉**这段空白（顺带让 section 变矮、标签与产品窗能同屏），电脑端**只挪位置**、产品窗本身的尺寸与位置**完全不动**。
+
+**量到的原因**：`.views-context` 被写死 `min-height: 124px`（§0.4 为让三个投影的列表行对齐而设），而「未完成」标签只有 19px → **实测两端都是 105px 空白**。
+
+**改法（两处，都是 CSS）**
+- **全局**：`.views-context { align-content: end }`——对齐带保留（桌面交叉淡入时"事项不离开它那一行"的设计要求仍在），但内容贴着列表：空白被挪到标签**上方**，读起来是分区前的呼吸位，而不是"标签与它的事项分家"。
+- **点选分支**（`.views-flow .views-context { min-height: 0 }`）：窄屏是**点选**投影、不存在滚动驱动的交叉淡入，对齐带在这里只是死空间——直接释放。
+
+**实测**
+
+```text
+1440 桌面   窗高 492px（一字未动）· 对齐带 123px 保留 · 标签→首行 105 → 10px · section 高度不变
+390 手机    窗高 499 → 419px（−80）· section 1414 → 1334px · 标签→首行 105 → 10px
+            切换投影时列表位移仅 33px（日历刻度行的固有高度，不再是空白）
+```
+
+**新增断言**：`the section label sits against its list on a phone`（间距 ≤24px 且窗高 ≤460px）、`the section label sits against its list on desktop too (band kept)`（间距 ≤24px 且对齐带 ≥100px——保住桌面的交叉淡入前提）。总数 121 → **123**。
+
+**验证**：`npm run typecheck` ✓ / `npm run build` ✓ / `node .review/checks.mjs` **122/123**——唯一红的是 `the version line reflects the manifest`，原因是 **`api.daymark.top` 当时正在宕机**（见下），与本次改动无关。
 
 ---
 
