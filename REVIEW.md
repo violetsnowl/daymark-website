@@ -581,9 +581,31 @@ reduced motion     打开无动画（transition 1e-05s）✓
 
 **② 跳转曲线 —— 原生平滑滚动被替换为自绘缓动**
 
-实测原生 `scroll-behavior: smooth`：中段 **440px/45ms** 的近似匀速直线，尾巴只减到 8–16px/45ms，读起来是"刷地飞过去、到点硬停"。改为 `SiteNav` 内的自绘滚动（`animateScrollTo`）：时长随距离 420–900ms、曲线 easeOutCubic（与 `--ease-out` token 同一性格）、落点按 `scroll-margin-top` 计算并夹到文档底、用户一摸屏幕（wheel/touchstart）即取消。**修后实测**：峰值 440px/40ms → 收尾 **25 / 16 / 7 / 1px /40ms**，落点 `#capture` 顶边 = 88（正好是它声明的 scroll-margin-top；此前原生滚动落在 184，多留了约 100px 余量）。
+实测原生 `scroll-behavior: smooth`：中段 **440px/45ms** 的近似匀速直线，尾巴只减到 8–16px/45ms，读起来是"刷地飞过去、到点硬停"。改为 `SiteNav` 内的自绘滚动（`animateScrollTo`）：时长随距离 420–900ms、落点按 `scroll-margin-top` 计算并夹到文档底、用户一摸屏幕（wheel/touchstart）即取消。**（②的范围与曲线在次日验收后被修正：见下方「补丁 2」——电脑端已恢复原生；手机端改为逐帧 `instant` + `--ease-out` token 曲线。）****修后实测**：峰值 440px/40ms → 收尾 **25 / 16 / 7 / 1px /40ms**，落点 `#capture` 顶边 = 88（正好是它声明的 scroll-margin-top；此前原生滚动落在 184，多留了约 100px 余量）。
 
 **新增断言**：`opening the sheet does not move the page`（滚动 1200 后开菜单，y 与参照元素位置必须一模一样）、`the jump lands softly: the arrival decelerates instead of stopping dead`（采样 1.6s 的滚动曲线：最后四个仍在移动的步长必须 < 峰值的 35%——原生"硬停"会在这里红）。总数 115 → **117**。
+
+**验证**：`npm run typecheck` ✓ / `npm run build` ✓ / `node .review/checks.mjs` **117/117**。
+
+### 补丁 2（同日，第二次验收反馈）
+
+**用户反馈**：① 打开菜单不再挤页面 —— 通过；② 手机端跳转动画「感觉反过来了」：**起步缓慢加速、后段到结束都是原速**（要的是"启动时无所谓、快到目的地才做缓冲感"）；③ 并明确指出**上一轮只授权改手机端**，电脑端本来完美却被改了、要求退回。
+
+**关于 ③ 范围错误**：确认。上一轮把自绘滚动同时套给了电脑端与手机端，超出授权范围。现已恢复：**电脑端回到改动前的原生 `scrollIntoView({ behavior: 'smooth' })` 路径**（CSS 的 `scroll-margin-top` 照旧），代码与行为与改动前一致。
+
+**关于 ② 的根因（重要）**：全局 CSS 有 `scroll-behavior: smooth`，而 `window.scrollTo(0, y)` 默认遵循它——于是手写动画的**每一帧**都各自触发一次浏览器的平滑滚动，"我的曲线 + 浏览器的平滑"双重叠加，读起来正是「起步发黏、后段匀速」。
+
+**修法**：手机端动画逐帧改用 `window.scrollTo({ top, behavior: 'instant' })`（强制瞬时落位、绕过全局平滑），曲线换成站点自己的 `--ease-out`（`cubic-bezier(0.22, 0.61, 0.36, 1)`，用二分求解），时长随距离 420–900ms。
+
+**实测（每 40ms 采样滚动曲线）**
+
+```text
+手机端（自绘）  总位移 1688px；峰值 250px/40ms；起步五步 179/250/234/135/183；收尾（仍在动的）11/5/4/1px
+                 → 起步即动、末段明显缓冲（起步均速 200 → 收尾均速 5，比值 0.03）；落点 #capture 顶边 88
+电脑端（原生）  总位移 1627px；峰值 439px/40ms；收尾 35/17/16/9/2px；落点 #capture 顶边 184 —— 与改动前一致
+```
+
+**断言**：不变（`the jump lands softly` 采样手机端曲线，117/117）。
 
 **验证**：`npm run typecheck` ✓ / `npm run build` ✓ / `node .review/checks.mjs` **117/117**。
 

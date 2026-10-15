@@ -7,13 +7,18 @@ import { LanguageSwitch } from "./LanguageSwitch.tsx";
 import { PrimaryButton } from "./Buttons.tsx";
 
 /**
- * In-page scrolling is animated here rather than handed to the browser's own
- * `scroll-behavior: smooth`. Measured (2026-10-13): the native curve spends a
- * long jump at 440px per 45ms of near-constant speed and then stops — on a
- * phone it reads as "线性的刷刷唰飞过去" with no arrival, while the rest of the
- * site ends everything softly. The landing position is the same
- * (`scroll-margin-top` is honoured), the duration scales with the distance, and
- * the curve is easeOutCubic — the character of the `--ease-out` token.
+ * The phone sheet's anchor jump, animated by hand — **phone only** (2026-10-13):
+ * the desktop bar keeps the browser's own smooth scroll, which the user calls
+ * perfect, and only the phone was ever in scope.
+ *
+ * Two things the naive version got wrong (measured on a phone):
+ *   1. `window.scrollTo(y)` obeys the global `scroll-behavior: smooth`, so every
+ *      frame of a hand-written animation became its own smooth scroll — a double
+ *      animation that read as "slow to start, constant to the end" (user report).
+ *      Every frame here passes `behavior: "instant"`.
+ *   2. Duration only scales with distance; the curve is the site's own
+ *      `--ease-out` (cubic-bezier(0.22, 0.61, 0.36, 1)), so the jump starts
+ *      promptly and spends its last stretch *arriving*.
  */
 const SCROLL_MIN_MS = 420;
 const SCROLL_MAX_MS = 900;
@@ -26,21 +31,42 @@ function cancelAnimatedScroll() {
   }
 }
 
+/** cubic-bezier(0.22, 0.61, 0.36, 1) — the `--ease-out` token, solved. */
+function easeOutToken(t: number): number {
+  const x1 = 0.22;
+  const y1 = 0.61;
+  const x2 = 0.36;
+  const y2 = 1;
+  const bezier = (a: number, b: number, u: number) => {
+    const v = 1 - u;
+    return 3 * v * v * u * a + 3 * v * u * u * b + u * u * u;
+  };
+  let low = 0;
+  let high = 1;
+  let u = t;
+  for (let i = 0; i < 20; i += 1) {
+    const x = bezier(x1, x2, u);
+    if (Math.abs(x - t) < 0.0005) break;
+    if (x < t) low = u;
+    else high = u;
+    u = (low + high) / 2;
+  }
+  return bezier(y1, y2, u);
+}
+
 function animateScrollTo(targetY: number, reducedMotion: boolean) {
   cancelAnimatedScroll();
-  if (reducedMotion) {
-    window.scrollTo(0, targetY);
-    return;
-  }
   const startY = window.scrollY;
   const delta = targetY - startY;
-  if (Math.abs(delta) < 2) return;
-  const duration = Math.min(SCROLL_MAX_MS, Math.max(SCROLL_MIN_MS, Math.abs(delta) * 0.6));
+  if (reducedMotion || Math.abs(delta) < 2) {
+    window.scrollTo({ top: targetY, behavior: "instant" });
+    return;
+  }
+  const duration = Math.min(SCROLL_MAX_MS, Math.max(SCROLL_MIN_MS, Math.abs(delta) * 0.55));
   const started = performance.now();
-  const ease = (t: number) => 1 - (1 - t) ** 3;
   const step = (now: number) => {
     const t = Math.min(1, (now - started) / duration);
-    window.scrollTo(0, startY + delta * ease(t));
+    window.scrollTo({ top: startY + delta * easeOutToken(t), behavior: "instant" });
     scrollAnimationFrame = t < 1 ? window.requestAnimationFrame(step) : 0;
   };
   scrollAnimationFrame = window.requestAnimationFrame(step);
@@ -111,7 +137,7 @@ export function SiteNav() {
 
   /** Anchor navigation respects reduced motion but works without JavaScript too. */
   const goToSection = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string, options?: { sheet?: boolean }) => {
       const target = document.getElementById(sectionId);
       if (!target) {
         /* The sections live on the home page. From /download/ (or the 404) the
@@ -123,13 +149,21 @@ export function SiteNav() {
       }
       event.preventDefault();
       setMenuOpen(false);
-      /* Compute the landing here (not via scrollIntoView) so the animated scroll
-         can be handed an exact target: the section's position minus its
-         `scroll-margin-top`, clamped to the document. Scroll on the next frame —
-         the menu effect releases the body scroll lock on the same commit, and
-         scrolling while it is still locked would be a no-op. The page then
-         glides to the section *below the sheet*, which is the point of the small
-         sheet (user ruling, 2026-10-13). */
+      if (!options?.sheet) {
+        /* Desktop bar: the browser's own smooth scroll, exactly as before the
+           phone work — the user calls this one perfect and only the phone was in
+           scope (2026-10-13). */
+        target.scrollIntoView({
+          behavior: reducedMotion ? "auto" : "smooth",
+          block: "start",
+        });
+        window.history.replaceState(null, "", `#${sectionId}`);
+        return;
+      }
+      /* Phone sheet: hand-animated (see `animateScrollTo`). Scroll on the next
+         frame — the sheet's effect releases the body scroll lock on this commit,
+         and scrolling while it is still locked would be a no-op — and aim at the
+         section's own `scroll-margin-top` so the landing matches the CSS. */
       window.requestAnimationFrame(() => {
         const margin = Number.parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
         const maxScroll = Math.max(
@@ -211,7 +245,7 @@ export function SiteNav() {
             <a
               key={anchor.id}
               href={anchor.href}
-              onClick={(event) => goToSection(event, anchor.id)}
+              onClick={(event) => goToSection(event, anchor.id, { sheet: true })}
             >
               {anchor.label}
             </a>
