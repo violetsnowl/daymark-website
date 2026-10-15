@@ -65,6 +65,12 @@ export function ViewsScene() {
   const stageRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
   const [pinned, setPinned] = useState(false);
+  /* Narrow screens show ONE product window and the reader picks the projection
+     with a tap (user ruling 2026-10-13): the three stacked copies ran ~2240px,
+     repeated the window chrome, and — while their switchers did show which
+     projection each copy held — the section as a whole gave no "where am I" cue
+     worth the length. Meaning still never depends on scrolling (W2 §25). */
+  const [view, setView] = useState<PlanView>("overview");
 
   /* The pinned stage is a desktop affordance. Below 1024px and whenever motion
      is reduced, the same three views are shown as a plain in-flow sequence, so
@@ -208,7 +214,7 @@ export function ViewsScene() {
       className="scene scene-views"
       aria-labelledby="views-title"
       data-pinned={pinned}
-      data-view={activeView}
+      data-view={pinned ? activeView : view}
     >
       <div className="env-light views-env" aria-hidden="true" />
       <div className="container">
@@ -233,18 +239,17 @@ export function ViewsScene() {
         ) : (
           <>
             {sceneHeader}
-            <div className="views-sequence">
-              {VIEW_ORDER.map((view, index) => (
-                <div className="views-sequence-step" key={view}>
-                  <ViewSwitcher
-                    labels={copy.views.views}
-                    activeIndex={index}
-                    anchorPrefix={`views-${view}`}
-                  />
-                  {panel(view)}
-                  <p className="views-caption">{copy.views.views[view].caption}</p>
-                </div>
-              ))}
+            <div className="views-flow">
+              <ViewSwitcher
+                labels={copy.views.views}
+                activeIndex={VIEW_ORDER.indexOf(view)}
+                anchorPrefix="views"
+                onSelect={setView}
+              />
+              {panel(view)}
+              <p className="views-caption" aria-live="polite">
+                {copy.views.views[view].caption}
+              </p>
             </div>
           </>
         )}
@@ -266,26 +271,48 @@ function ViewSwitcher({
   labels,
   activeIndex,
   anchorPrefix,
+  onSelect,
 }: {
   labels: Record<PlanView, { label: string; hint: string }>;
   activeIndex: number;
   anchorPrefix: string;
+  /** Narrow screens pass a handler: the switcher becomes the section's real
+   *  control (buttons, keyboard-operable) instead of a decorative caption. */
+  onSelect?: (view: PlanView) => void;
 }) {
+  const interactive = Boolean(onSelect);
+  const row = (view: PlanView, index: number) => (
+    <>
+      <span className="view-switcher-index">{String(index + 1).padStart(2, "0")}</span>
+      <span className="view-switcher-text">
+        <span className="view-switcher-label">{labels[view].label}</span>
+        <span className="view-switcher-hint">{labels[view].hint}</span>
+      </span>
+    </>
+  );
   return (
-    <ol className="view-switcher" aria-hidden="true">
+    <ol
+      className={`view-switcher${interactive ? " view-switcher--control" : ""}`}
+      aria-hidden={interactive ? undefined : true}
+    >
       {VIEW_ORDER.map((view, index) => (
         <li
           key={view}
           id={`${anchorPrefix}-${view}`}
           className={index === activeIndex ? "is-active" : undefined}
         >
-          <span className="view-switcher-index">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <span className="view-switcher-text">
-            <span className="view-switcher-label">{labels[view].label}</span>
-            <span className="view-switcher-hint">{labels[view].hint}</span>
-          </span>
+          {interactive ? (
+            <button
+              type="button"
+              className="view-switcher-tab"
+              aria-pressed={index === activeIndex}
+              onClick={() => onSelect?.(view)}
+            >
+              {row(view, index)}
+            </button>
+          ) : (
+            row(view, index)
+          )}
         </li>
       ))}
     </ol>

@@ -1793,48 +1793,132 @@ try {
       `linksResolve=${ending.footerLinksResolve}`,
   );
 
-  /* ---------- 15. Scene 04 without pinning: the same three views in flow ---------- */
+  /* ---------- 15. Scene 04 without pinning: one window, the switcher as a control ----------
+     Narrow screens — and desktop under reduced motion — show ONE product window
+     and the switcher is the section's real control (user ruling, 2026-10-13).
+     Until this round they showed three stacked copies of the same window
+     (~2240px, no "where am I" cue). */
   await goTo(client, "/", 1440, 900, true);
   const reducedViews = await evaluate(
     client,
     `(() => {
       const section = document.querySelector('#views');
-      const steps = document.querySelectorAll('.views-sequence-step').length;
-      const panels = document.querySelectorAll('.views-panels').length;
-      const markedRows = Array.from(
-        document.querySelectorAll('.views-sequence .item-row.is-marked'),
-      );
-      /* Each projection carries exactly one marked row: the overview also lists
-         two other items, but only the page's main item is identified. */
-      const perPanel = Array.from(
-        document.querySelectorAll('.views-sequence .views-panels'),
-      ).flatMap((group) =>
-        Array.from(group.querySelectorAll('.views-panel')).map(
-          (panel) => panel.querySelectorAll('.item-row.is-marked').length,
-        ),
-      );
+      const tabs = Array.from(document.querySelectorAll('#views .view-switcher-tab'));
+      const panels = Array.from(document.querySelectorAll('#views .views-panels .views-panel'));
       return {
         pinned: section.dataset.pinned,
-        steps,
-        panels,
-        markedRows: markedRows.length,
-        perPanel,
+        windows: document.querySelectorAll('#views .product-window').length,
+        sequenceLeft: document.querySelectorAll('.views-sequence').length,
+        tabs: tabs.length,
+        switcherAriaHidden: document.querySelector('#views .view-switcher').getAttribute('aria-hidden'),
+        panelTransition: getComputedStyle(panels[0]).transitionDuration,
+        markedRows: document.querySelectorAll('#views .item-row.is-marked').length,
+        perPanel: panels.map((panel) => panel.querySelectorAll('.item-row.is-marked').length),
       };
     })()`,
   );
   check(
-    "reduced motion shows the three views as a plain sequence",
-    reducedViews.pinned === "false" && reducedViews.steps === 3 && reducedViews.panels === 3,
-    `pinned=${reducedViews.pinned} steps=${reducedViews.steps} panels=${reducedViews.panels}`,
+    "reduced motion shows the section as one window with a switcher",
+    reducedViews.pinned === "false" &&
+      reducedViews.windows === 1 &&
+      reducedViews.sequenceLeft === 0 &&
+      reducedViews.tabs === 3 &&
+      reducedViews.switcherAriaHidden === null,
+    `pinned=${reducedViews.pinned} windows=${reducedViews.windows} tabs=${reducedViews.tabs}`,
   );
-  /* One marked row per projection, nine in the DOM because all three projections
-     exist and only the active one is visible. */
+  /* One marked row per projection, three in the DOM because all three projections
+     exist inside the one window and only the active one is visible. */
   check(
     "every projection marks the item without motion",
-    reducedViews.markedRows === 9 &&
-      reducedViews.perPanel.length === 9 &&
-      reducedViews.perPanel.every((count) => count === 1),
+    reducedViews.markedRows === 3 && reducedViews.perPanel.every((count) => count === 1),
     `${reducedViews.markedRows} marked rows, per projection ${reducedViews.perPanel.join("/")}`,
+  );
+  check(
+    "reduced motion switches projections without a transition",
+    /* The global reduced-motion rule collapses every transition to 0.01ms
+       (`1e-05s`), so "no transition" reads as an effectively zero duration. */
+    Number.parseFloat(reducedViews.panelTransition) <= 0.001,
+    reducedViews.panelTransition,
+  );
+
+  /* ---------- 15b. Scene 04 on a phone: choosing a projection ---------- */
+  await goTo(client, "/", 390, 844);
+  await scrollToSection(client, "#views");
+  await delay(600);
+  const phoneViews = await evaluate(
+    client,
+    `(() => {
+      const section = document.querySelector('#views');
+      const tabs = Array.from(document.querySelectorAll('#views .view-switcher-tab'));
+      const panels = Array.from(document.querySelectorAll('#views .views-panels .views-panel'));
+      return {
+        pinned: section.dataset.pinned,
+        windows: document.querySelectorAll('#views .product-window').length,
+        sectionHeight: Math.round(section.getBoundingClientRect().height),
+        tabs: tabs.map((t) => ({
+          label: t.querySelector('.view-switcher-label').textContent,
+          pressed: t.getAttribute('aria-pressed'),
+          height: Math.round(t.getBoundingClientRect().height),
+          tag: t.tagName,
+        })),
+        panelTransition: getComputedStyle(panels[0]).transitionDuration,
+        view: section.dataset.view,
+        activeAttr: document.querySelector('#views .views-panels').dataset.active,
+        opacities: panels.map((panel) => [panel.dataset.panel, getComputedStyle(panel).opacity]),
+        caption: (document.querySelector('#views .views-caption').textContent ?? '').trim(),
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
+      };
+    })()`,
+  );
+  check(
+    "a phone shows one product window and a short section, not three copies",
+    phoneViews.pinned === "false" &&
+      phoneViews.windows === 1 &&
+      phoneViews.sectionHeight <= 1700 &&
+      phoneViews.overflow <= 1,
+    `windows=${phoneViews.windows} height=${phoneViews.sectionHeight}px overflow=${phoneViews.overflow}`,
+  );
+  check(
+    "the projections are chosen, not scrolled: three buttons, ≥44px, one pressed",
+    phoneViews.tabs.length === 3 &&
+      phoneViews.tabs.every((tab) => tab.tag === "BUTTON" && tab.height >= 44) &&
+      phoneViews.tabs.filter((tab) => tab.pressed === "true").length === 1 &&
+      phoneViews.tabs[0].pressed === "true",
+    phoneViews.tabs.map((tab) => `${tab.label}:${tab.pressed}/${tab.height}px`).join(" "),
+  );
+  await evaluate(client, `document.querySelectorAll('#views .view-switcher-tab')[2].click()`);
+  await delay(700);
+  const switched = await evaluate(
+    client,
+    `(() => {
+      const section = document.querySelector('#views');
+      const panels = Array.from(document.querySelectorAll('#views .views-panels .views-panel'));
+      const tabs = Array.from(document.querySelectorAll('#views .view-switcher-tab'));
+      return {
+        view: section.dataset.view,
+        activeAttr: document.querySelector('#views .views-panels').dataset.active,
+        opacities: panels.map((panel) => [panel.dataset.panel, getComputedStyle(panel).opacity]),
+        pressed: tabs.map((tab) => tab.getAttribute('aria-pressed')),
+        caption: (document.querySelector('#views .views-caption').textContent ?? '').trim(),
+        focused: (() => {
+          const tab = tabs[1];
+          tab.focus();
+          return document.activeElement === tab;
+        })(),
+      };
+    })()`,
+  );
+  check(
+    "tapping a projection swaps the panel, its mark and its caption",
+    switched.view === "calendar" &&
+      switched.activeAttr === "calendar" &&
+      switched.opacities.some(([name, value]) => name === "calendar" && value === "1") &&
+      switched.opacities.some(([name, value]) => name === "overview" && value === "0") &&
+      switched.pressed[2] === "true" &&
+      switched.pressed[0] === "false" &&
+      switched.caption.length > 0 &&
+      switched.focused,
+    `${switched.view} / ${switched.activeAttr} / ${JSON.stringify(switched.opacities)} / press=${switched.pressed.join(",")}`,
   );
 
   /* ---------- 11. Language entry ---------- */

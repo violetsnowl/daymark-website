@@ -1691,19 +1691,58 @@
 
 /* Below the pinned breakpoint the three views become a plain sequence: same
    meaning, no scrubbing required (W2 §24.4). */
-.views-sequence {
+/* Narrow screens: one product window, and the switcher above it is the section's
+   control (user ruling, 2026-10-13 — this replaced a ~2240px stack of three
+   identical windows). */
+.views-flow {
   display: grid;
-  gap: clamp(48px, 10vw, 88px);
+  gap: 20px;
   margin-top: clamp(24px, 4vh, 40px);
 }
 
-.views-sequence-step {
-  display: grid;
-  gap: 20px;
+.view-switcher--control {
+  gap: 4px;
 }
 
-.views-sequence-step .view-switcher li:not(.is-active) .view-switcher-hint {
-  display: none;
+/* The `<li>` must stop being the two-column grid here: with the row wrapped in a
+   button, the button would land in the 26px first column and wrap its text into
+   a ~270px tall sliver. The button itself carries the grid (measured bug,
+   2026-10-13). */
+.view-switcher--control li {
+  display: block;
+}
+
+/* The control keeps the editorial look of the desktop switcher (number, label,
+   hint) but the whole row is a button: ≥44px tall, full width, keyboard
+   operable. Inactive rows sit muted exactly as on desktop; the active one is
+   the "you are here" cue the stacked version never had. */
+.view-switcher-tab {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  width: 100%;
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: color var(--motion-panel) var(--ease-out);
+}
+
+.view-switcher-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .view-switcher-tab:hover .view-switcher-label {
+    color: var(--ink);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

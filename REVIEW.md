@@ -2,7 +2,7 @@
 
 **阶段**：W4 Stage C（已验收）+ **Stage D（已验收，Scene 06 按要求修订）** + **Stage E（A Day / Closing / 完整 Footer）**
 **W3 Prototype Baseline**：已按裁决锁定
-**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **117/117 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N、Scene 01 移动端本地化 §0O）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
+**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **121/121 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N、Scene 01 移动端本地化 §0O）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
 **审计约定**：本文件是项目的总审计——每轮改动后把最新情况、问题与实测写进对应小节；§0 是当前生效参数，§0B–§0J 保留各轮修复过程。
 
 ---
@@ -612,6 +612,33 @@ reduced motion     打开无动画（transition 1e-05s）✓
 **断言**：新增 `the sheet is as tall as its content, not a screen`、`the sheet wears the bar's glass`、`the four anchors sit in one centred row, and stay tappable`、`tapping the page below the sheet closes it`、`choosing an anchor closes the sheet and the page moves to the section`、`reduced motion opens the sheet without animating`、`the top bar has one glass state from the first pixel`；改写 `Escape closes the mobile menu` 与 `the menu still opens after the page has scrolled`（面板常驻 DOM）。总数 108 → **115**。
 
 **验证**：`npm run typecheck` ✓ / `npm run build` ✓ / `node .review/checks.mjs` **115/115**。
+
+---
+
+## 0R. Scene 04 窄屏：单卡 + 可点标签（2026-10-13，专项主线 ①）
+
+**背景**：§0P 第 1 项（impeccable P2-4 ②）——窄屏原本是**三张连续卡**（390：2240px；768：2251px），每张各带一个纯装饰的 switcher（`aria-hidden`），整段没有"我在看哪个视角"的指示；报告给的方向是"顺序流加轻量视角标注"。
+
+**用户裁决**：窄屏统一为**一个产品窗 + 可点标签**（默认「总览」；768–1023 同形态）。
+
+**改动**
+- `ViewsScene.tsx`：新增 `view` 选择态；窄屏分支由"三段顺序流"改为"单卡"——`ViewSwitcher` 传入 `onSelect` 后成为真控件（`<button>` + `aria-pressed` + 键盘可达），`data-view` 跟随选择；caption 移到单卡下方并 `aria-live="polite"`。
+- `site.css`：删除 `.views-sequence` / `.views-sequence-step` 及其隐藏规则（尾巴清干净）；新增 `.views-flow`、`.view-switcher--control`（`li` 恢复 `display: block`——否则按钮会被压进 26px 第一列，实测把每行撑到 274px）、`.view-switcher-tab`（沿用桌面视觉：编号 / 标签 / 说明；整行 ≥44px；focus-visible 焦点环）。
+- `.review/checks.mjs`：第 15 节按新形态重写，新增 15b 节三条断言。总数 117 → **121**。
+
+**实测**
+
+```text
+390×844    section 高 1414px（改前 2240px）；产品窗 1 张；`.views-sequence` 残留 0；横向溢出 0
+           标签 3 个（BUTTON / 60px 高 / aria-pressed 唯一为 true）；点「日程」→ data-view 与 data-active = calendar、
+           内层 opacity 0/0/1、caption 跟随、aria-pressed 迁移；可聚焦（BUTTON 原生 Enter/Space 可激活）
+768×1024   同形态（单窗 + 3 标签）
+1440×900   仍是钉住叙事（data-pinned=true、stage 在、switcher 装饰态 aria-hidden）——桌面零变化
+```
+
+**断言**：`reduced motion shows the section as one window with a switcher`、`every projection marks the item without motion`（3 行标记、每投影 1 行）、`reduced motion switches projections without a transition`、`a phone shows one product window and a short section, not three copies`（≤1700px 的守卫，防止长链回归）、`the projections are chosen, not scrolled: three buttons, ≥44px, one pressed`、`tapping a projection swaps the panel, its mark and its caption`。
+
+**验证**：`npm run typecheck` ✓ / `npm run build` ✓ / `node .review/checks.mjs` **121/121**。
 
 ---
 
