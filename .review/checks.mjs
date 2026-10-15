@@ -429,28 +429,76 @@ try {
   check("Escape closes the mobile menu", menuClosed.gone && menuClosed.bodyUnlocked, JSON.stringify(menuClosed));
 
   /* Choosing an anchor closes the sheet and the page really travels to the
-     section — visibly, below the sheet (user ruling). */
+     section — visibly, below the sheet (user ruling). The samples double as the
+     guard for the hand-written scroll: the arrival must decelerate (the browser's
+     own `smooth` spent the last stretch at near-constant speed and stopped dead —
+     user report, 2026-10-13: "线性的刷刷刷飞过去"). */
   const beforeJump = await evaluate(client, `Math.round(scrollY)`);
   await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
   await delay(500);
-  await evaluate(
+  const jump = await evaluate(
     client,
-    `Array.from(document.querySelectorAll('.site-menu-links a')).find((a) => a.textContent.includes('怎么工作')).click()`,
-  );
-  await delay(1800);
-  const afterJump = await evaluate(
-    client,
-    `(() => ({
-      y: Math.round(scrollY),
-      open: document.querySelector('#site-menu').dataset.open,
-      targetTop: Math.round(document.querySelector('#capture').getBoundingClientRect().top),
-    }))()`,
+    `(async () => {
+      const samples = [];
+      Array.from(document.querySelectorAll('.site-menu-links a')).find((a) => a.textContent.includes('怎么工作')).click();
+      for (let i = 0; i < 40; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 40));
+        samples.push(Math.round(scrollY));
+      }
+      return {
+        samples,
+        open: document.querySelector('#site-menu').dataset.open,
+        targetTop: Math.round(document.querySelector('#capture').getBoundingClientRect().top),
+      };
+    })()`,
   );
   check(
     "choosing an anchor closes the sheet and the page moves to the section",
-    afterJump.open === 'false' && afterJump.y > beforeJump + 400 && Math.abs(afterJump.targetTop) <= 260,
-    `${beforeJump} → ${afterJump.y}, #capture top ${afterJump.targetTop}, open=${afterJump.open}`,
+    jump.open === 'false' &&
+      jump.samples[jump.samples.length - 1] > beforeJump + 400 &&
+      Math.abs(jump.targetTop) <= 260,
+    `${beforeJump} → ${jump.samples[jump.samples.length - 1]}, #capture top ${jump.targetTop}, open=${jump.open}`,
   );
+  const jumpDeltas = jump.samples.slice(1).map((y, i) => Math.max(0, y - jump.samples[i]));
+  const peak = Math.max(...jumpDeltas);
+  /* The last steps *while still moving* — the sampling window runs past the end
+     of the scroll, and trailing zeroes would make a dead stop look soft. */
+  const movingSteps = jumpDeltas.filter((step) => step > 0);
+  const tail = movingSteps.slice(-4);
+  check(
+    "the jump lands softly: the arrival decelerates instead of stopping dead",
+    peak > 0 &&
+      jump.samples[jump.samples.length - 1] - jump.samples[0] > 400 &&
+      tail.every((step) => step < peak * 0.35),
+    `peak ${peak}px/40ms, final steps ${tail.join('/')}px/40ms`,
+  );
+
+  /* Opening the sheet must not move the page at all: a plain focus() asked the
+     browser to scroll the panel into view, and because the panel lives inside
+     the sticky bar the position it computed was wrong — the page jumped up by
+     ~470px (user report, 2026-10-13: "会把当前所在页面往下挤一点"). */
+  await goTo(client, "/", 390, 844);
+  await evaluate(client, `window.scrollTo({ top: 1200, behavior: 'instant' })`);
+  await delay(700);
+  const settle = `(() => ({ y: Math.round(scrollY), ref: Math.round(document.querySelector('#capture').getBoundingClientRect().top) }))()`;
+  const beforeOpen = await evaluate(client, settle);
+  await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
+  await delay(700);
+  const afterOpen = await evaluate(
+    client,
+    `(() => ({
+      y: Math.round(scrollY),
+      ref: Math.round(document.querySelector('#capture').getBoundingClientRect().top),
+      open: document.querySelector('#site-menu').dataset.open,
+    }))()`,
+  );
+  check(
+    "opening the sheet does not move the page",
+    afterOpen.open === 'true' && beforeOpen.y === afterOpen.y && beforeOpen.ref === afterOpen.ref,
+    `${beforeOpen.y}/${beforeOpen.ref} → ${afterOpen.y}/${afterOpen.ref}`,
+  );
+  await evaluate(client, `document.querySelector('.site-nav-menu-trigger').click()`);
+  await delay(400);
 
   /* The panel must survive the scrolled bar — the old bug (REVIEW §0P). */
   await goTo(client, "/", 390, 844);

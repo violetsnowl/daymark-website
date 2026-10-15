@@ -2,7 +2,7 @@
 
 **阶段**：W4 Stage C（已验收）+ **Stage D（已验收，Scene 06 按要求修订）** + **Stage E（A Day / Closing / 完整 Footer）**
 **W3 Prototype Baseline**：已按裁决锁定
-**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **115/115 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N、Scene 01 移动端本地化 §0O）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
+**状态**：首页十节全部实现、整页视觉验收完成；自动化验证 **117/117 通过**（含设计审查修复轮 §0H、验收期内容修订 §0I、下载页 §0L、语言入口默认中文 §0N、Scene 01 移动端本地化 §0O）。**官网已上线** `https://daymark.top`（Cloudflare Workers + GitHub 自动构建；NS 已切、全链路验证全绿——见 §0K、`DEPLOY.md` §8）；**下载页 `/download/` 已上线**，`app.daymark.top` 跳转已配置并验证（见 §0L）。（2026-10-11 结项快照：Scene 01 / 04 节奏最终化、演示案例＝高等数学 / 周五交第二次作业——见 §0D 第五轮、§0F、§0G）
 **审计约定**：本文件是项目的总审计——每轮改动后把最新情况、问题与实测写进对应小节；§0 是当前生效参数，§0B–§0J 保留各轮修复过程。
 
 ---
@@ -563,6 +563,29 @@ reduced motion     打开无动画（transition 1e-05s）✓
 ```
 
 **玻璃强度候选**：A 档 = `blur 18px + 底色 76%`；B 档 = `blur 20px + 底色 72%`。对比图在本机 scratch（`nav-shots/compare-glass-desktop.png`、`compare-glass-mobile.png`）；**当前生效 = A 档**，改选 B 只需改 tokens 一行。
+
+### 补丁（同日，验收后两处优化）
+
+**用户报告**：①「手机端展开菜单时会把当前所在页面往下挤一点，像从顶弹出后把页面往下推」；②「手机端点击目录链接后切换的过程动画是不是和电脑端不一样，没有快到目的地时略微减速缓冲的变速动画，而是线性的刷刷刷飞过去」。
+
+**① 页面被挤 —— 单变量隔离结论：`panel.focus()`**
+
+```text
+只加 body overflow:hidden   y 1200 → 1200（不动）
+只给 main/footer 设 inert   y 1200 → 1200（不动）
+只把面板设为 data-open      y 1200 → 1200（不动）
+只调用 panel.focus()        y 1200 → 729 ✗（页面整体下移 471px）
+```
+
+根因：focus 默认会把目标滚进视野，而面板在 sticky 导航条内部，浏览器据此算出的滚动目标错位。修法：`focus({ preventScroll: true })`（焦点仍进入对话框）。**实测（真触发器路径）**：打开前 y=1200 / #capture 顶边 576 → 打开后 **完全一致**。
+
+**② 跳转曲线 —— 原生平滑滚动被替换为自绘缓动**
+
+实测原生 `scroll-behavior: smooth`：中段 **440px/45ms** 的近似匀速直线，尾巴只减到 8–16px/45ms，读起来是"刷地飞过去、到点硬停"。改为 `SiteNav` 内的自绘滚动（`animateScrollTo`）：时长随距离 420–900ms、曲线 easeOutCubic（与 `--ease-out` token 同一性格）、落点按 `scroll-margin-top` 计算并夹到文档底、用户一摸屏幕（wheel/touchstart）即取消。**修后实测**：峰值 440px/40ms → 收尾 **25 / 16 / 7 / 1px /40ms**，落点 `#capture` 顶边 = 88（正好是它声明的 scroll-margin-top；此前原生滚动落在 184，多留了约 100px 余量）。
+
+**新增断言**：`opening the sheet does not move the page`（滚动 1200 后开菜单，y 与参照元素位置必须一模一样）、`the jump lands softly: the arrival decelerates instead of stopping dead`（采样 1.6s 的滚动曲线：最后四个仍在移动的步长必须 < 峰值的 35%——原生"硬停"会在这里红）。总数 115 → **117**。
+
+**验证**：`npm run typecheck` ✓ / `npm run build` ✓ / `node .review/checks.mjs` **117/117**。
 
 **断言**：新增 `the sheet is as tall as its content, not a screen`、`the sheet wears the bar's glass`、`the four anchors sit in one centred row, and stay tappable`、`tapping the page below the sheet closes it`、`choosing an anchor closes the sheet and the page moves to the section`、`reduced motion opens the sheet without animating`、`the top bar has one glass state from the first pixel`；改写 `Escape closes the mobile menu` 与 `the menu still opens after the page has scrolled`（面板常驻 DOM）。总数 108 → **115**。
 
