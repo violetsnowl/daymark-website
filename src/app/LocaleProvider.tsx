@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   EN_PREFIX,
+  barePath,
   copies,
   localeFromPath,
   storeLocale,
@@ -46,7 +47,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       /* Stay on the same page when the page has an address of its own
          (/download/ ↔ /en/download/); the home surface still resolves to the
          locale's entry point (W3 §2.3). */
-      const bare = location.pathname.replace(/^\/en(?=\/|$)/, "") || "/";
+      const bare = barePath(location.pathname);
       const target =
         next === "en" ? (bare === "/" ? `${EN_PREFIX}/` : `${EN_PREFIX}${bare}`) : bare;
       navigate(`${target}${location.search ?? ""}${hash ?? ""}`);

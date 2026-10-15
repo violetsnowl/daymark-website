@@ -5,7 +5,16 @@ import { useLocale } from "../../app/LocaleProvider.tsx";
  * button that changes the whole page language, and the active half stays quiet
  * rather than shouting.
  */
-export function LanguageSwitch({ className }: { className?: string }) {
+export function LanguageSwitch({
+  className,
+  onSwitch,
+}: {
+  className?: string;
+  /** Lets a host close itself: the phone sheet is a panel over the page, and a
+   *  language switch from inside it must not leave the sheet hanging there
+   *  (user ruling, 2026-10-15 — same defect as the sheet's CTAs). */
+  onSwitch?: () => void;
+}) {
   const { copy, locale, switchTo } = useLocale();
 
   return (
@@ -15,7 +24,10 @@ export function LanguageSwitch({ className }: { className?: string }) {
         type="button"
         className={locale === "cn" ? "is-active" : undefined}
         aria-current={locale === "cn" ? "true" : undefined}
-        onClick={() => switchTo("cn")}
+        onClick={() => {
+          onSwitch?.();
+          switchTo("cn");
+        }}
       >
         {copy.nav.languageCn}
       </button>
@@ -26,7 +38,10 @@ export function LanguageSwitch({ className }: { className?: string }) {
         type="button"
         className={locale === "en" ? "is-active" : undefined}
         aria-current={locale === "en" ? "true" : undefined}
-        onClick={() => switchTo("en")}
+        onClick={() => {
+          onSwitch?.();
+          switchTo("en");
+        }}
       >
         {copy.nav.languageEn}
       </button>

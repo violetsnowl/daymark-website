@@ -251,12 +251,20 @@ export function SiteNav() {
             </a>
           ))}
         </nav>
+        {/* The sheet is a panel over the page: every control in it that navigates
+            closes it first, so the reader meets the new page itself — and so the
+            body scroll lock is released (user ruling, 2026-10-15: tapping these
+            used to leave the sheet open, and with it the page frozen). */}
         <div className="site-menu-foot">
-          <LanguageSwitch />
+          <LanguageSwitch onSwitch={() => setMenuOpen(false)} />
           {onDownloadPage ? (
-            <PrimaryButton to={href("/")}>{copy.nav.backHome}</PrimaryButton>
+            <PrimaryButton to={href("/")} onClick={() => setMenuOpen(false)}>
+              {copy.nav.backHome}
+            </PrimaryButton>
           ) : (
-            <PrimaryButton to={href("/download/")}>{copy.nav.enterApp}</PrimaryButton>
+            <PrimaryButton to={href("/download/")} onClick={() => setMenuOpen(false)}>
+              {copy.nav.enterApp}
+            </PrimaryButton>
           )}
         </div>
       </div>

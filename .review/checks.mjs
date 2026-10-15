@@ -2372,6 +2372,119 @@ try {
     JSON.stringify(downloadReduced),
   );
 
+  /* ---------- Page switches start at the top (user rulings, 2026-10-15) ----------
+     The router is client-side, so a Link to another page used to inherit the
+     document's scroll offset (a homepage read at y=2200 landed at the bottom of
+     /download/). Five rules: forward = top; back/forward = the browser's own
+     restoration; a language switch keeps the reader's place; a same-page brand
+     click goes to the top; and a control inside the phone sheet closes it. */
+  const waitPath = async (want, tries = 45) => {
+    for (let attempt = 0; attempt < tries; attempt += 1) {
+      if (await evaluate(client, `location.pathname === ${JSON.stringify(want)}`)) return true;
+      await delay(120);
+    }
+    return false;
+  };
+  const y = () => evaluate(client, "Math.round(window.scrollY)");
+  const freezeGlobalSmooth = () =>
+    evaluate(client, "document.documentElement.style.scrollBehavior = 'auto'");
+
+  await goTo(client, "/", 1440, 900);
+  await freezeGlobalSmooth();
+  await evaluate(client, "window.scrollTo(0, 2200)");
+  await delay(500);
+  await evaluate(client, "document.querySelector('.site-nav-cta').click()");
+  const toDownload = await waitPath("/download/");
+  await delay(800);
+  const afterForward = await y();
+  check(
+    "a page switch from a scrolled homepage starts the download page at the top",
+    toDownload && afterForward <= 4,
+    `landed at y=${afterForward} (the page's whole range is ~387px)`,
+  );
+
+  await evaluate(client, "window.scrollTo(0, document.documentElement.scrollHeight)");
+  await delay(500);
+  const downloadScrolled = await y();
+  await evaluate(client, "document.querySelector('.site-nav-cta').click()");
+  const backHome = await waitPath("/");
+  await delay(800);
+  const afterHome = await y();
+  check(
+    "「回到首页」 also starts the homepage at the top",
+    backHome && afterHome <= 4 && downloadScrolled > 100,
+    `download scrolled to y=${downloadScrolled}, homepage landed at y=${afterHome}`,
+  );
+
+  await evaluate(client, "history.back()");
+  await delay(1600);
+  const afterPop = await y();
+  check(
+    "the browser's back button still returns the reader where they were",
+    afterPop > 100,
+    `back landed at y=${afterPop} (not forced to the top)`,
+  );
+
+  await goTo(client, "/", 1440, 900);
+  await freezeGlobalSmooth();
+  await evaluate(client, "window.scrollTo(0, 3000)");
+  await delay(500);
+  await evaluate(client, "document.querySelectorAll('.site-nav-language button')[1].click()");
+  const toEnglish = await waitPath("/en/");
+  await delay(900);
+  const afterLanguage = await y();
+  check(
+    "a language switch keeps the reader's place",
+    toEnglish && afterLanguage > 500,
+    `landed at y=${afterLanguage} (W3 §2.3: stay on the section)`,
+  );
+
+  await goTo(client, "/", 1440, 900);
+  await freezeGlobalSmooth();
+  await evaluate(client, "window.scrollTo(0, 2500)");
+  await delay(500);
+  await evaluate(client, "document.querySelector('.site-brand').click()");
+  await delay(700);
+  const afterBrand = await y();
+  check(
+    "clicking the brand on the homepage goes back to the top",
+    afterBrand <= 4,
+    `landed at y=${afterBrand}`,
+  );
+
+  await goTo(client, "/", 390, 844);
+  await freezeGlobalSmooth();
+  await evaluate(client, "window.scrollTo(0, 1600)");
+  await delay(400);
+  await evaluate(client, "document.querySelector('.site-nav-menu-trigger').click()");
+  await delay(600);
+  const sheetOpen = await evaluate(
+    client,
+    "document.querySelector('#site-menu').getAttribute('data-open') === 'true'",
+  );
+  await evaluate(client, "document.querySelector('#site-menu .site-menu-foot a').click()");
+  const sheetSwitch = await waitPath("/download/");
+  await delay(900);
+  const afterSheet = await evaluate(
+    client,
+    `({
+      y: Math.round(window.scrollY),
+      open: document.querySelector('#site-menu').getAttribute('data-open'),
+      hidden: document.querySelector('#site-menu').getAttribute('aria-hidden'),
+      bodyOverflow: document.body.style.overflow,
+    })`,
+  );
+  check(
+    "the phone sheet closes on the way out and the new page starts at the top",
+    sheetOpen &&
+      sheetSwitch &&
+      afterSheet.y <= 4 &&
+      afterSheet.open === "false" &&
+      afterSheet.hidden === "true" &&
+      afterSheet.bodyOverflow !== "hidden",
+    JSON.stringify(afterSheet),
+  );
+
   client.close();
 } finally {
   chrome.kill();

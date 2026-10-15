@@ -37,7 +37,7 @@ daymark.top 的品牌官网（Editorial Product Website / 编辑式产品官网�
 - prefers-reduced-motion 是一等模式：必须有完整静态替代，不是「动画变快」。
 - 无水平滚动；每个动画必须有语义。
 - 明确的未决事项（不得当作已达成）：正式品牌资产（favicon 为按标记几何重绘的矢量版；Logo 沿用产品既有标记）；英文文案 V2 语言润色；<1024px tablet motion 矩阵（整页验收已完成，等排期）。
-- 当前状态（2026-10-13 更新）：十节 + Footer 实现完毕；自动化 124/124、单元测试 20/20；官网已上线 `daymark.top`（含下载页 `/download/` 与网页版 `app.daymark.top`）。
+- 当前状态（2026-10-13 更新）：十节 + Footer 实现完毕；自动化 130/130、单元测试 20/20；官网已上线 `daymark.top`（含下载页 `/download/` 与网页版 `app.daymark.top`）。
 
 ## Brand Commitments
 

@@ -5,6 +5,7 @@ import { DownloadPage } from "./DownloadPage.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { NotFoundPage } from "./NotFoundPage.tsx";
 import { useDocumentMeta } from "./useDocumentMeta.ts";
+import { usePageSwitchScroll } from "./usePageSwitchScroll.ts";
 
 /**
  * Route model (W3 §2.1): `/` is the Chinese canonical surface and `/en/` is the
@@ -14,6 +15,8 @@ import { useDocumentMeta } from "./useDocumentMeta.ts";
 function SiteShell() {
   const copy = useCopy();
   useDocumentMeta();
+  /* Every page switch lands at the top (2026-10-15); see the hook for the rules. */
+  usePageSwitchScroll();
 
   return (
     <>

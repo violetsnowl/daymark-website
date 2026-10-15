@@ -15,6 +15,13 @@ export const EN_PREFIX = "/en";
 const STORAGE_KEY = "daymark-language";
 
 /** Chinese is canonical: anything that is not the /en subtree is Chinese. */
+/** The page a path addresses, with the language prefix taken off: `/en/download/`
+ *  and `/download/` are the same page in two languages (W3 §2.1/§2.3). */
+export function barePath(pathname: string): string {
+  const normalised = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  return normalised.replace(/^\/en(?=\/|$)/, "") || "/";
+}
+
 export function localeFromPath(pathname: string): Locale {
   const normalised = pathname.replace(/\/+$/, "").toLowerCase();
   return normalised === EN_PREFIX || normalised.startsWith(`${EN_PREFIX}/`) ? "en" : "cn";
